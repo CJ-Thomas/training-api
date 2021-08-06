@@ -5,7 +5,6 @@
 	use Slim\Http\Request;
 	use Slim\Http\Response;
 	use com\linways\api\v1\BaseController;
-	use Linways\Slim\Exception\CoreException;
 	use Linways\Slim\Utils\ResponseUtils;
 
 	use stdClass;
@@ -17,12 +16,13 @@
         protected function getHelloWorld ( Request $request, Response $response ) {
             $params = $request->getQueryParams();
             try {
-                $init->message = "Hello World!";
+                $data = new \stdClass;
+                $data->message = "Hello World!";
                 
             } catch (\Exception $e) {
-                throw new CoreException('Error occurred while fetching data', "ERROR_OCCURRED");
+                return ResponseUtils::fault($response,$e);
             }
-            return $response->withJson($init);
+            return $response->withJson($data);
         }
 
     }

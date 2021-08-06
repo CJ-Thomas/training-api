@@ -2,7 +2,6 @@
 
     namespace com\linways\core\util;
 
-    use com\linways\core\exception\OnlineExamException;
 
     class CommonUtil
     {
