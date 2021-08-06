@@ -1,0 +1,56 @@
+{
+	"name": "linways/curriculum-api",
+	"license": "",
+	"type": "project",
+	"require": {
+		"linways/slim": "^0.1.15",
+		"linways/nucleus-core": "~1.0.0",
+		"respect/validation": "^1.1",
+		"linways/ams-professional-core": "^3.0.0",
+		"linways/workflow-core" : "^0.1.3"
+	},
+	"repositories": [
+		{
+			"type": "git",
+			"url": "git@gitlab.com:linways/linways-slim.git",
+			"name": "linways-slim"
+		},
+		{
+			"type" : "git",
+			"url" : "git@gitlab.com:linways/nucleus-core.git",
+			"name" : "nucleus-core"
+		},
+		{
+			"type" : "git",
+			"url" : "git@gitlab.com:linways/linways-base.git",
+			"name" : "linways-base"
+		},
+		{
+			"type": "git",
+			"url": "git@gitlab.com:linways/ams-professional-core.git",
+			"name": "ams-professional-core"
+		},
+		{
+			"type" : "git",
+			"url" : "git@gitlab.com:linways/workflow.git",
+			"name" : "workflow-core"
+		}
+	],
+
+	"autoload": {
+		"psr-4": {
+			"com\\linways\\api\\": "src/com/linways/api",
+			"com\\linways\\core\\": "src/com/linways/core"
+		}
+	},
+	"autoload-dev": {
+	  "psr-4": {
+		"test\\":"test"
+	  }
+	},
+	"require-dev": {
+	  "phpunit/phpunit": "^7",
+	  "fzaninotto/faker": "^1.8",
+	  "icanhazstring/phpunit-faker-extension": "^0.1.0"
+	}
+}

@@ -1,0 +1,23 @@
+<phpunit >
+  <testsuites>
+    <testsuite name="unit">
+      <directory>test/unit</directory>
+    </testsuite>
+    <testsuite name="testname">
+      <file>test/unit/service/PATH_TO_ServiceTest.php</file>
+    </testsuite>
+  </testsuites>
+  <filter>
+  <whitelist processUncoveredFilesFromWhitelist="true">
+    <directory suffix=".php">src/com/linways/core/service</directory>
+    <exclude>
+      <file></file>
+    </exclude>
+  </whitelist>
+</filter>
+
+<logging>
+  <log type="coverage-html" target="test/report" lowUpperBound="35" highLowerBound="70"/>
+</logging>
+
+</phpunit>
