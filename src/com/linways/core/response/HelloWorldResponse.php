@@ -3,7 +3,7 @@ namespace com\linways\core\response;
 
 use com\linways\base\response\BaseResponse;
 
-class SearchHelloWorldRequest extends BaseResponse
+class HelloWorldResponse extends BaseResponse
 {
     /**
      * @var Array
