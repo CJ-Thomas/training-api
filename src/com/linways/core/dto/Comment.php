@@ -20,11 +20,11 @@ class Comment extends BaseDTO {
      */
 	public $postId;
 
-
     /**
      * @var string
      */
     public $parentCommentId;
+
     /**
      * @var string
      */

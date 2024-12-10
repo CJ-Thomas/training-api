@@ -24,6 +24,7 @@ class Post extends BaseDTO{
      * @var string
      */
 	public $caption;
+
 }
 
 ?>

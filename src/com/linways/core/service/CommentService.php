@@ -13,6 +13,9 @@
         public function createComment(Comment $comment){
             $comment = $this-> realEscapeObject($comment);
 
+
+            $query = "INSERT INTO comments (id, user_id, post_id, comment, parent_comment_id, created_by, updated_by)
+            VALUES('$comment->id','$comment->userId','$comment->postId','$comment->comment','','','');";
             return $comment;
         }
         
