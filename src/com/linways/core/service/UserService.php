@@ -150,7 +150,7 @@ class UserService extends BaseService
         $email = $this->realEscapeString($email);
         $password = $this->realEscapeString($password);
 
-        if((empty($userName)&&empty($email))||empty($password))
+        if ((empty($userName) && empty($email)) || empty($password))
             throw new Exception("UNDEFINED FIELDS");
 
         $query1 = "SELECT password FROM users WHERE u_name = '$userName';";

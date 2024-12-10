@@ -48,27 +48,25 @@ class PostService extends BaseService
         $post = $this->realEscapeString($post);
         $caption = $this->realEscapeString($caption);
 
-        if(empty($post)&&empty($caption))
+        if (empty($post) && empty($caption))
             throw new Exception("UNDEFINED FIELDS");
 
         $query = "UPDATE posts SET";
 
-        if(!empty($post))
-            $query = $query." post = '$post',";
+        if (!empty($post))
+            $query = $query . " post = '$post',";
 
-        if(!empty($caption))
-            $query = $query." caption = '$caption',";
+        if (!empty($caption))
+            $query = $query . " caption = '$caption',";
 
         $query = substr($query, 0, -1) . " WHERE id LIKE '$id';";
 
         try {
 
             $result1 = ($this->executeQuery($query))->sqlResult;
-
         } catch (Exception $e) {
             throw $e;
         }
-
     }
 
     /**
@@ -85,7 +83,6 @@ class PostService extends BaseService
         try {
 
             $result = ($this->executeQuery($query))->sqlResult;
-
         } catch (\Exception $e) {
             throw $e;
         }
@@ -100,25 +97,24 @@ class PostService extends BaseService
      * @param int $offset
      * @return object[ id=> string, post=> string ]
      */
-    public function getAllPosts(string $userId = "", int $limit = 10, int $offSet = 0){
+    public function getAllPosts(string $userId = "", int $limit = 10, int $offSet = 0)
+    {
 
         $query = "SELECT id FROM posts LIMIT $limit OFFSET $offSet;";
 
-        if(!empty($userId))
+        if (!empty($userId))
             $query = "SELECT id, post FROM posts WHERE user_id LIKE '$userId' LIMIT $limit OFFSET $offSet;";
-        
+
         try {
 
-            $result = ($this->executeQuery($query))->sqlResult;    
-    
+            $result = ($this->executeQuery($query))->sqlResult;
+
             while ($object = $result->fetch_object())
                 $posts[] = $object;
         } catch (Exception $e) {
             throw $e;
         }
-    
+
         return $posts;
-
     }
-
 }

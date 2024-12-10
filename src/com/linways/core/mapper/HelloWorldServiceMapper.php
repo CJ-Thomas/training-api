@@ -9,8 +9,6 @@ use com\linways\base\util\MakeSingletonTrait;
 
 class HelloWorldServiceMapper implements IMapper
 {
-    private $mapper = [];
-
     use MakeSingletonTrait;
 
     const SEARCH_HELLO_WORLD = "SEARCH_HELLO_WORLD";

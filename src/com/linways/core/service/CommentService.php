@@ -49,7 +49,7 @@ class CommentService extends BaseService
         $id = $this->realEscapeString($id);
         $comment = $this->realEscapeString($comment);
 
-        if(empty($comment))
+        if (empty($comment))
             return "";
 
         $query = "UPDATE comments SET commet = '$comment' WHERE id = '$id';";
@@ -57,11 +57,9 @@ class CommentService extends BaseService
         try {
 
             $result = ($this->executeQuery($query))->sqlResult;
-
         } catch (Exception $e) {
             throw $e;
         }
-
     }
 
     /**
@@ -78,12 +76,11 @@ class CommentService extends BaseService
         try {
 
             $result = ($this->executeQuery($query))->sqlResult;
-
         } catch (\Exception $e) {
             throw $e;
         }
         return $result;
-    }   
+    }
 
     /**
      * Get all comments related to a post
@@ -93,21 +90,18 @@ class CommentService extends BaseService
     public function getAllPostComments(string $postId)
     {
         $postId = $this->realEscapeString($postId);
-        
+
         $query = "SELECT id, user_id, comment, parent_comment_id FROM comments WHERE post_id = '$postId';";
 
         try {
 
             $result = ($this->executeQuery($query))->sqlResult;
             while ($object = $result->fetch_object())
-            $comments[] = $object;
-
-
+                $comments[] = $object;
         } catch (\Exception $e) {
             throw $e;
         }
 
         return $comments;
     }
-
 }
