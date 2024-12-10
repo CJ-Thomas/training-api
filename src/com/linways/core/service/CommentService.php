@@ -4,6 +4,7 @@ namespace com\linways\core\service;
 
 use com\linways\base\util\MakeSingletonTrait;
 use com\linways\core\dto\Comment;
+use com\linways\core\mapper\CommentServiceMapper;
 use com\linways\core\util\UuidUtil;
 use Exception;
 
@@ -11,6 +12,13 @@ class CommentService extends BaseService
 {
     use MakeSingletonTrait;
 
+
+    private function __construct()
+    {
+        $this->mapper = CommentServiceMapper::getInstance()->getMapper();
+    }
+
+    
     /**
      * create a new comment
      * @param Comment $comment

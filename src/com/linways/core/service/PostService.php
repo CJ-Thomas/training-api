@@ -4,12 +4,19 @@ namespace com\linways\core\service;
 
 use com\linways\base\util\MakeSingletonTrait;
 use com\linways\core\dto\Post;
+use com\linways\core\mapper\PostServiceMapper;
 use com\linways\core\util\UuidUtil;
 use Exception;
 
 class PostService extends BaseService
 {
     use MakeSingletonTrait;
+
+
+    private function __construct()
+    {
+        $this->mapper = PostServiceMapper::getInstance()->getMapper();
+    }
 
     /**
      * Create a new post

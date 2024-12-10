@@ -7,15 +7,16 @@ use com\linways\base\mapper\IMapper;
 use com\linways\base\mapper\ResultMap;
 use com\linways\base\util\MakeSingletonTrait;
 
-class PostServiceMapper implements IMapper{
+class LikeServiceMapper implements IMapper{
 
     use MakeSingletonTrait;
 
     const SEARCH_LIKE = 'SEARCH_LIKE';
 
     private $mapper;
-    
+
     private function getlike(){
+
         $mapper = null;
     
         $mapper = new ResultMap("getlike", "com\linways\core\dto\Like", "id", "id");

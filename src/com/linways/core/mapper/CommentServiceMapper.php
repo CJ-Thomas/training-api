@@ -7,14 +7,14 @@ use com\linways\base\mapper\IMapper;
 use com\linways\base\mapper\ResultMap;
 use com\linways\base\util\MakeSingletonTrait;
 
-class PostServiceMapper implements IMapper{
+class CommentServiceMapper implements IMapper{
 
     use MakeSingletonTrait;
 
     const SEARCH_COMMENT = 'SEARCH_COMMENT';
 
     private $mapper;
-    
+
     private function getComment(){
         $mapper = null;
     

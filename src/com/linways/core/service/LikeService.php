@@ -4,6 +4,7 @@ namespace com\linways\core\service;
 
 use com\linways\base\util\MakeSingletonTrait;
 use com\linways\core\dto\Like;
+use com\linways\core\mapper\LikeServiceMapper;
 use com\linways\core\util\UuidUtil;
 use Exception;
 
@@ -11,6 +12,12 @@ class LikeService extends BaseService
 {
 
     use MakeSingletonTrait;
+
+    private function __construct()
+    {
+        $this->mapper = LikeServiceMapper::getInstance()->getMapper();
+    }
+
     /**
      * @param Like $like
      */
