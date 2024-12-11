@@ -5,6 +5,7 @@ namespace com\linways\core\service;
 use com\linways\base\util\MakeSingletonTrait;
 use com\linways\core\dto\Post;
 use com\linways\core\mapper\PostServiceMapper;
+use com\linways\core\request\SearchPostRequest;
 use com\linways\core\util\UuidUtil;
 use Exception;
 
@@ -12,6 +13,7 @@ class PostService extends BaseService
 {
     use MakeSingletonTrait;
 
+    private $mapper;
 
     private function __construct()
     {
@@ -46,31 +48,26 @@ class PostService extends BaseService
 
     /**
      * Edit an existing post within a certain period
-     * @param string $id
-     * @param string $post url of new post
-     * @param string $caption
+     * @param Post $post
      */
-    public function editPost(string $id, string $post, string $caption)
+    public function editPost(Post $post)
     {
-        $post = $this->realEscapeString($post);
-        $caption = $this->realEscapeString($caption);
+        $post = $this->realEscapeObject($post);
 
-        if (empty($post) && empty($caption))
+        if (empty($post->post) && empty($post->caption))
             throw new Exception("UNDEFINED FIELDS");
 
-        $query = "UPDATE posts SET";
-
+        
         if (!empty($post))
-            $query = $query . " post = '$post',";
-
+            $columnArray[] = "post = '$post'";
+        
         if (!empty($caption))
-            $query = $query . " caption = '$caption',";
-
-        $query = substr($query, 0, -1) . " WHERE id LIKE '$id';";
+        $columnArray[] = "caption = '$caption'";
+    
+        $query = "UPDATE posts SET ".implode(",",$columnArray)." WHERE id LIKE '$post->id';";
 
         try {
-
-            $result1 = ($this->executeQuery($query))->sqlResult;
+            $this->executeQuery($query);
         } catch (Exception $e) {
             throw $e;
         }
@@ -89,7 +86,7 @@ class PostService extends BaseService
 
         try {
 
-            $result = ($this->executeQuery($query))->sqlResult;
+            $result = $this->executeQuery($query);
         } catch (\Exception $e) {
             throw $e;
         }
@@ -99,29 +96,31 @@ class PostService extends BaseService
 
     /**
      * gets all posts either in homepage or a user's account
-     * @param string $userId default null
-     * @param int $limit
-     * @param int $offset
-     * @return object[ id=> string, post=> string ]
+     * @return Post[]
      */
-    public function getAllPosts(string $userId = "", int $limit = 10, int $offSet = 0)
+    public function fetchPosts(SearchPostRequest $request)
     {
 
-        $query = "SELECT id FROM posts LIMIT $limit OFFSET $offSet;";
-
-        if (!empty($userId))
-            $query = "SELECT id, post FROM posts WHERE user_id LIKE '$userId' LIMIT $limit OFFSET $offSet;";
-
+        $whereQuery=(!empty($request))?"WHERE user_id LIKE '$request->userId '":"";
+        $limitQuery = "LIMIT $request->startIndex, $request->endIndex;";
+        $query = "SELECT id, post, caption ".$whereQuery.$limitQuery;
         try {
-
-            $result = ($this->executeQuery($query))->sqlResult;
-
-            while ($object = $result->fetch_object())
-                $posts[] = $object;
+            $posts = $this->executeQueryForList($query);
         } catch (Exception $e) {
             throw $e;
         }
+    }
 
-        return $posts;
+    public function fetchTotalLikes($postId){
+
+        $postId = $this->realEscapeString($postId);
+
+        $query = "SELECT COUNT(*) FROM likes WHERE post_id LIKE '$postId';";
+
+        try {
+            $result = $this->executeQueryForObject($query);
+        } catch (Exception $e) {
+            throw $e;
+        }
     }
 }

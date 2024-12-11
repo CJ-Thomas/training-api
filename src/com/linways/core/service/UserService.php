@@ -6,6 +6,7 @@ use com\linways\base\util\MakeSingletonTrait;
 use com\linways\core\dto\User;
 use com\linways\core\util\UuidUtil;
 use com\linways\core\mapper\UserServiceMapper;
+use com\linways\core\request\SearchUserRequest;
 use Respect\Validation\Validator;
 use Exception;
 
@@ -13,6 +14,8 @@ use Exception;
 class UserService extends BaseService
 {
     use MakeSingletonTrait;
+
+    private $mapper;
 
     private function __construct()
     {
@@ -26,7 +29,7 @@ class UserService extends BaseService
      * @param string $uName
      * @return Bool
      */
-    public function checkUserExist(string $uName)
+    private function checkUserExist(string $uName)
     {
 
         $uName = $this->realEscapeString($uName);
@@ -78,7 +81,7 @@ class UserService extends BaseService
      * Login/ Authenticate user
      * @param string $userName
      * @param string $password
-     * @return string
+     * @return string id of the user
      */
     public function authenticateUser(string $userName, string $password)
     {
@@ -93,12 +96,12 @@ class UserService extends BaseService
         $query = "SELECT id, password FROM users WHERE u_name = '$userName';";
 
         try {
-            $result = ($this->executeQuery($query))->sqlResult->fetch_object();
+            $result = $this->executeQueryForObject($query,false);
         } catch (\Exception $e) {
             throw $e;
         }
 
-
+        
         if (!password_verify($password, $result->password))
             return "";
 
@@ -109,75 +112,66 @@ class UserService extends BaseService
      * Delete an existing user
      * @param string $userName
      * @param string $password
-     * @param string $email
      * @return bool
      */
-    public function deleteUser(string $userName, string $email, string $password)
+    public function deleteUser(string $userName, string $password)
     {
         $userName = $this->realEscapeString($userName);
-        $email = $this->realEscapeString($email);
         $password = $this->realEscapeString($password);
 
-        if (empty($email) || empty($password))
+        if (empty($userName) || empty($password))
             return "";
 
-        $query1 = "SELECT password FROM users WHERE u_name = '$userName';";
-        $query2 = "DELETE FROM users WHERE u_name = '$userName';";
+        $passwordSelectQuery = "SELECT password FROM users WHERE u_name = '$userName';";
+        $deleteQuery = "DELETE FROM users WHERE u_name = '$userName';";
 
         try {
+            $passwordResult = $this->executeQueryForObject($passwordSelectQuery);
 
-            $result1 = ($this->executeQuery($query1))->sqlResult->fetch_object();
-
-            if (!password_verify($password, $result1->password))
+            if (!password_verify($password, $passwordResult->password))
                 return "";
 
-            $result2 = ($this->executeQuery($query2))->sqlResult;
+            $deleteResult = $this->executeQueryForObject($deleteQuery);
         } catch (\Exception $e) {
             throw $e;
         }
 
-        return $result2;
+        return $deleteResult;
     }
 
     /**
      * Edit an existing user
      * @param User $userName
      */
-    public function editUserInfo(string $id, string $userName, string $email, string $password)
+    public function editUserInfo(User $user)
     {
-        $id = $this->realEscapeString($id);
-        $userName = $this->realEscapeString($userName);
-        $email = $this->realEscapeString($email);
-        $password = $this->realEscapeString($password);
+        $user = $this->realEscapeObject($user);
 
-        if ((empty($userName) && empty($email)) || empty($password))
+        if ((empty($user->uName) && empty($user->email)) || empty($user->password))
             throw new Exception("UNDEFINED FIELDS");
 
-        $query1 = "SELECT password FROM users WHERE u_name = '$userName';";
-
-        $query2 = "UPDATE users SET";
+        $passwordSelectQuery = "SELECT password FROM users WHERE id = '$user->id';";
 
         if (!empty($userName)) {
             Validator::alnum()->noWhitespace()->length(4, 30)->check($userName);
-            $query2 = $query2 . " u_name = '$userName',";
+            $columnArray[] =" u_name = '$userName'";
         }
 
         if (!empty($email)) {
             Validator::email()->check($email);
-            $query2 = $query2 . " email = '$email',";
+            $columnArray[] =" email = '$email'";
         }
 
-        $query2 = substr($query2, 0, -1) . " WHERE id LIKE '$id';";
+        $updateQuery = "UPDATE users SET".implode(",",$columnArray)." WHERE id LIKE '$user->id';";
 
 
         try {
+            $passwordResult = $this->executeQueryForObject($passwordSelectQuery);
 
-            $result1 = ($this->executeQuery($query1))->sqlResult->fetch_object();
-
-            if (!password_verify($password, $result1->password))
+            if (!password_verify($user->password, $passwordResult->password))
                 return "";
 
-            $result2 = ($this->executeQuery($query2))->sqlResult;
+            $this->executeQuery($updateQuery);
         } catch (Exception $e) {
             throw $e;
         }
@@ -186,61 +180,28 @@ class UserService extends BaseService
 
 
     /**
-     * Fetching all users
-     * @return string[] $users
+     * Fetching users
+     * @param SearchUserRequest
+     * @return Object[("id"=>string, "u_name"=>string)] $userArray
      */
-    public function getAllUsers(string $subString = "", int $limit = 10, int $offSet = 0)
+    public function searchUsers(SearchUserRequest $request)
     {
+        $request = $this->realEscapeObject($request);
 
-        $query = "SELECT u_name FROM users LIMIT $limit OFFSET $offSet;";
+        $whereQuery = (!empty($request->name))? "WHERE u_name LIKE '%$request->name%' ":"";
+        $limitQuery = "LIMIT $request->startIndex, $request->endIndex;";
 
-        if ($subString)
-            $query = "SELECT u_name FROM users WHERE u_name LIKE '%$subString%'
-                LIMIT $limit OFFSET $offSet;";
+        $query = "SELECT id, u_name FROM users ".$whereQuery.$limitQuery;
 
         try {
-
-            $result = ($this->executeQuery($query))->sqlResult;
-
-
-
-            while ($row = $result->fetch_row())
-                $uNames[] = $row[0];
+            $userArray = $this->executeQueryForList($query);
         } catch (Exception $e) {
             throw $e;
         }
 
-        return $uNames;
+        return $userArray;
     }
 
-    /**
-     * fetch user details from user name
-     * @param string $uName
-     * @return User only uName, email, profilePicture, bio other fields will be empty
-     */
-    public function getUserDetails(string $uName)
-    {
-
-        $query = "SELECT u_name, email, profile_picture, bio FROM users
-            WHERE u_name LIKE '$uName'";
-
-        try {
-
-            $result = ($this->executeQuery($query))->sqlResult->fetch_object();
-        } catch (Exception $e) {
-
-            throw $e;
-        }
-
-        $user = new User();
-
-        $user->uName = $result->uName;
-        $user->email = $result->email;
-        $user->profilePicture = $result->profile_picture;
-        $user->bio = $result->bio;
-
-        return $result;
-    }
 
     private function validateUser(User $user)
     {

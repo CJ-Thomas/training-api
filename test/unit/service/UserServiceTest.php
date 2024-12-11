@@ -16,6 +16,7 @@ class UserServiceTest extends APITestCase{
     protected function setUp()
     {
         parent::setUp();
+        // $this->setInitialDataUsingSQLFile(__DIR__."/initial-sql-setup.sql");
     }
 
     public function getUser($uName="sikePotatoe"){
@@ -30,23 +31,6 @@ class UserServiceTest extends APITestCase{
         return $user;   
     }
 
-
-    public function testCheckUserExist(){
-        
-        $user = $this->getUser();
-        try{
-            
-            UserService::getInstance()->createUser($user);
-            $result = UserService::getInstance()->checkUserExist($user->uName);
-
-        } catch(Exception $e) {
-            echo $e->getMessage();
-        }
-
-        $this->assertIsBool($result);
-
-        $this->clearDBTable("users");
-    }
 
     public function testCreateUserService(){
         $user = $this->getUser();
@@ -65,7 +49,7 @@ class UserServiceTest extends APITestCase{
     
     public function testAuthenticateUserName(){
         
-        $user = $this->getUser();
+        $user = $this->getUser("sookpotatoe");
         $password = $user->password;
         try{
             
@@ -78,20 +62,21 @@ class UserServiceTest extends APITestCase{
         }
         
         $this->assertIsString($result);
-        
         $this->clearDBTable("users");
+
+        
     }
     
     public function testDeleteUser(){
         
-        $user = $this->getUser();
+        $user = $this->getUser("wasawasawasa");
         $password = $user->password;
         
         try{
             
             UserService::getInstance()->createUser($user);
             
-            UserService::getInstance()->deleteUser($user->uName, $user->email, $password);
+            UserService::getInstance()->deleteUser($user->uName, $password);
         }
         catch(Exception $e){
             echo $e->getMessage();
@@ -100,55 +85,28 @@ class UserServiceTest extends APITestCase{
         $this->assertDatabaseHasNot("users", [
             "id" => $user->id
         ]);
-        
-        
+        $this->clearDBTable("users");        
     }
     
-    public function testGetAllUsers(){
+    // public function testsearchUsers(){
         
-        try{
+    //     try{
             
-            UserService::getInstance()->createUser($this->getUser("googlymoogly"));
-            UserService::getInstance()->createUser($this->getUser("sikePotatoe"));
-            UserService::getInstance()->createUser($this->getUser("weuuweuuweuu"));
             
-            $result1 = UserService::getInstance()->getAllUsers();
-            $result2 = UserService::getInstance()->getAllUsers("o");
             
-        } catch(Exception $e){
-            echo $e->getMessage();
-        }
+    //     } catch(Exception $e){
+    //         echo $e->getMessage();
+    //     }
         
-        $this->assertIsArray($result1);
-        $this->assertIsArray($result2);
-
-        $this->clearDBTable("users");
+    //     $this->assertIsArray($result1);
+    //     $this->assertIsArray($result2);
         
-        
-        
-    }
+    //     $this->clearDBTable("users");
+    // }
     
-    public function testGetUserDetails(){
-        
-        $user = $this->getUser();
-        
-        try{
-            
-            UserService::getInstance()->createUser($user);
-            
-            $result = UserService::getInstance()->getUserDetails($user->uName);
-
-        } catch(Exception $e) {
-            echo $e->getMessage();
-        }
-
-        $this->assertIsObject($result);
-        $this->clearDBTable("users");
-
-    }
 
     protected function tearDown(){
-        
+        $this->clearDBTable("users");
     }
 }
 ?>

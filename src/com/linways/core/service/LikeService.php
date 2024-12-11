@@ -13,6 +13,8 @@ class LikeService extends BaseService
 
     use MakeSingletonTrait;
 
+    private $mapper;
+    
     private function __construct()
     {
         $this->mapper = LikeServiceMapper::getInstance()->getMapper();
@@ -55,21 +57,4 @@ class LikeService extends BaseService
         }
     }
 
-
-    /**
-     * @param String $postId
-     * @return Likes[]
-     */
-    public function getTotaPostlLikes(String $postId)
-    {
-        $postId = $this->realEscapeString($postId);
-
-        $query = "SELECT COUNT(*) FROM likes WHERE post_id LIKE '$postId';";
-
-        try {
-            $result = ($this->executeQuery($query))->sqlResult;
-        } catch (Exception $e) {
-            throw $e;
-        }
-    }
 }

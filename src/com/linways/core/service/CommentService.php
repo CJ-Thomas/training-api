@@ -12,6 +12,7 @@ class CommentService extends BaseService
 {
     use MakeSingletonTrait;
 
+    private $mapper;
 
     private function __construct()
     {
@@ -63,8 +64,7 @@ class CommentService extends BaseService
         $query = "UPDATE comments SET commet = '$comment' WHERE id = '$id';";
 
         try {
-
-            $result = ($this->executeQuery($query))->sqlResult;
+            $this->executeQuery($query);
         } catch (Exception $e) {
             throw $e;
         }
@@ -82,9 +82,8 @@ class CommentService extends BaseService
         $query = "DELETE FROM comments WHERE id LIKE '$id';";
 
         try {
-
-            $result = ($this->executeQuery($query))->sqlResult;
-        } catch (\Exception $e) {
+            $result = $this->executeQueryForObject($query);
+        } catch (Exception $e) {
             throw $e;
         }
         return $result;
@@ -102,11 +101,8 @@ class CommentService extends BaseService
         $query = "SELECT id, user_id, comment, parent_comment_id FROM comments WHERE post_id = '$postId';";
 
         try {
-
-            $result = ($this->executeQuery($query))->sqlResult;
-            while ($object = $result->fetch_object())
-                $comments[] = $object;
-        } catch (\Exception $e) {
+            $comments = $this->executeQueryForList($query,false,$this->mapper);
+        } catch (Exception $e) {
             throw $e;
         }
 
