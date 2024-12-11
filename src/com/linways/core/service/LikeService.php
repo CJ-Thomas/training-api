@@ -4,6 +4,7 @@ namespace com\linways\core\service;
 
 use com\linways\base\util\MakeSingletonTrait;
 use com\linways\core\dto\Like;
+use com\linways\core\exception\ParameterException;
 use com\linways\core\mapper\LikeServiceMapper;
 use com\linways\core\util\UuidUtil;
 use Exception;
@@ -37,18 +38,21 @@ class LikeService extends BaseService
         try {
             $this->executeQuery($query);
         } catch (Exception $e) {
-            throw new Exception("UNABLE TO INSERT INTO DB");
+            throw $e;
         }
     }
 
     /**
      * @param Like $like
      */
-    public function removeLike(Like $like)
+    public function removeLike(string $id)
     {
-        $like = $this->realEscapeObject($like);
+        $like = $this->realEscapeString($id);
 
-        $query = "DELETE FROM likes WHERE id LIKE '$like->id';";
+        if(empty($id))
+            throw new ParameterException(ParameterException::EMPTY_PARAMETERS,"missing id parameter");
+
+        $query = "DELETE FROM likes WHERE id LIKE '$id';";
 
         try {
             $this->executeQuery($query);

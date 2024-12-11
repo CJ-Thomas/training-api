@@ -4,6 +4,7 @@ namespace com\linways\core\service;
 
 use com\linways\base\util\MakeSingletonTrait;
 use com\linways\core\dto\Post;
+use com\linways\core\exception\ParameterException;
 use com\linways\core\mapper\PostServiceMapper;
 use com\linways\core\request\SearchPostRequest;
 use com\linways\core\util\UuidUtil;
@@ -40,7 +41,7 @@ class PostService extends BaseService
         try {
             $this->executeQuery($query);
         } catch (Exception $e) {
-            throw new Exception("UNABLE TO INSERT INTO DB");
+            throw $e;
         }
 
         return $post;
@@ -55,8 +56,7 @@ class PostService extends BaseService
         $post = $this->realEscapeObject($post);
 
         if (empty($post->post) && empty($post->caption))
-            throw new Exception("UNDEFINED FIELDS");
-
+            throw new ParameterException(ParameterException::EMPTY_PARAMETERS,"missing parameters");
         
         if (!empty($post))
             $columnArray[] = "post = '$post'";
@@ -82,10 +82,12 @@ class PostService extends BaseService
     {
         $id = $this->realEscapeString($id);
 
+        if(empty($id))
+            throw new ParameterException(ParameterException::EMPTY_PARAMETERS,"missing id parameter");
+
         $query = "DELETE FROM posts WHERE id = $id";
 
         try {
-
             $result = $this->executeQuery($query);
         } catch (\Exception $e) {
             throw $e;
@@ -100,7 +102,6 @@ class PostService extends BaseService
      */
     public function fetchPosts(SearchPostRequest $request)
     {
-
         $whereQuery=(!empty($request))?"WHERE user_id LIKE '$request->userId '":"";
         $limitQuery = "LIMIT $request->startIndex, $request->endIndex;";
         $query = "SELECT id, post, caption ".$whereQuery.$limitQuery;
@@ -115,6 +116,9 @@ class PostService extends BaseService
 
         $postId = $this->realEscapeString($postId);
 
+        if(empty($postId))
+            throw new ParameterException(ParameterException::EMPTY_PARAMETERS,"missing postId parameter");
+
         $query = "SELECT COUNT(*) FROM likes WHERE post_id LIKE '$postId';";
 
         try {
@@ -122,5 +126,7 @@ class PostService extends BaseService
         } catch (Exception $e) {
             throw $e;
         }
+        
+        return $result;
     }
 }

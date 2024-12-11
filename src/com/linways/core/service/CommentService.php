@@ -4,6 +4,7 @@ namespace com\linways\core\service;
 
 use com\linways\base\util\MakeSingletonTrait;
 use com\linways\core\dto\Comment;
+use com\linways\core\exception\ParameterException;
 use com\linways\core\mapper\CommentServiceMapper;
 use com\linways\core\util\UuidUtil;
 use Exception;
@@ -33,6 +34,10 @@ class CommentService extends BaseService
 
         $comment->id = UuidUtil::guidv4();
 
+        if(empty($comment->comment))
+            throw new ParameterException(ParameterException::EMPTY_PARAMETERS,"missing comment");
+
+
         $query = "INSERT INTO comments (id, user_id, post_id, comment, parent_comment_id, created_by, updated_by)
             VALUES('$comment->id','$comment->userId','$comment->postId','$comment->comment','$comment->parentCommentId',
             '$comment->createdBy','$comment->updatedBy');";
@@ -40,9 +45,8 @@ class CommentService extends BaseService
         try {
             $this->executeQuery($query);
         } catch (Exception $e) {
-            throw new Exception("UNABLE TO INSERT INTO DB");
+            throw $e;
         }
-
 
         return $comment;
     }
@@ -59,8 +63,8 @@ class CommentService extends BaseService
         $comment = $this->realEscapeString($comment);
 
         if (empty($comment))
-            return "";
-
+            throw new ParameterException(ParameterException::EMPTY_PARAMETERS,"missing comment parameter");
+            
         $query = "UPDATE comments SET commet = '$comment' WHERE id = '$id';";
 
         try {
@@ -71,13 +75,17 @@ class CommentService extends BaseService
     }
 
     /**
-     * delete a comment
+     * delete a commentParameterException(ParameterException::EMPTY_PARAMETERS,"missing parametes");
      * @param string $id
      * @return bool
      */
     public function deleteComment(string $id)
     {
         $id = $this->realEscapeString($id);
+
+        if(empty($id))
+            throw new ParameterException(ParameterException::EMPTY_PARAMETERS,"missing id parameter");
+
 
         $query = "DELETE FROM comments WHERE id LIKE '$id';";
 
@@ -97,6 +105,10 @@ class CommentService extends BaseService
     public function getAllPostComments(string $postId)
     {
         $postId = $this->realEscapeString($postId);
+
+        if(empty($postId))
+            throw new ParameterException(ParameterException::EMPTY_PARAMETERS,"missing postId parameters");
+
 
         $query = "SELECT id, user_id, comment, parent_comment_id FROM comments WHERE post_id = '$postId';";
 

@@ -4,7 +4,7 @@ namespace com\linways\core\exception;
 
 use com\linways\base\exception\CoreException;
 
-class ParameterExceptions extends CoreException{
+class ParameterException extends CoreException{
     
     const EMPTY_PARAMETERS = "EMPTY_PARAMETERS";
 
