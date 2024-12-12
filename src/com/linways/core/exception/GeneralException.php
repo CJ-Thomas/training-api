@@ -14,4 +14,5 @@ class GeneralException extends CoreException{
 
     const USER_EXISTS = "USER_EXISTS";
     
+    const INVALID_DATE_RANGE = "INVALID_DATE_RANGE";
 }

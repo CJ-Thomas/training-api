@@ -7,8 +7,9 @@ use com\linways\core\dto\Post;
 use com\linways\core\exception\GeneralException;
 use com\linways\core\mapper\PostServiceMapper;
 use com\linways\core\request\SearchPostRequest;
-use com\linways\core\response\PostResponse;
 use com\linways\core\util\UuidUtil;
+use com\linways\core\dto\Like;
+use com\linways\core\response\PostResponse;
 use Exception;
 
 class PostService extends BaseService
@@ -25,7 +26,6 @@ class PostService extends BaseService
     /**
      * Create a new post
      * @param Post $post
-     * @return Post $post
      */
     public function createPost(Post $post)
     {
@@ -35,9 +35,11 @@ class PostService extends BaseService
 
         $post->id = UuidUtil::guidv4();
 
-        $query = "INSERT INTO posts (id, user_id, post, caption, created_by, updated_by)
-            VALUES('$post->id','$post->userId','$post->content','$post->caption',
-            '$post->created_by','$post->updated_by');";
+        if (empty($post->content))
+            throw new GeneralException(GeneralException::EMPTY_PARAMETERS);
+
+        $query = "INSERT INTO posts(id, user_id, post, caption, created_by, updated_by)
+        VALUES('$post->id', '$post->userId', '$post->content', '$post->caption', '$post->createdBy', '$post->updatedBy');";
 
         try {
             $this->executeQuery($query);
@@ -49,7 +51,7 @@ class PostService extends BaseService
     }
 
     /**
-     * Edit an existing post within a certain period
+     * Edit an existing post
      * @param Post $post
      */
     public function editPost(Post $post)
@@ -57,15 +59,15 @@ class PostService extends BaseService
         $post = $this->realEscapeObject($post);
 
         if (empty($post->post) && empty($post->caption))
-            throw new GeneralException(GeneralException::EMPTY_PARAMETERS,"missing parameters");
-        
-        if (!empty($post))
-            $columnArray[] = "post = '$post'";
-        
-        if (!empty($caption))
-            $columnArray[] = "caption = '$caption'";
-    
-        $query = "UPDATE posts SET ".implode(",",$columnArray)." WHERE id LIKE '$post->id';";
+            throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing parameters");
+
+        if (!empty($post->content))
+            $columnArray[] = "post = '$post->content'";
+
+        if (!empty($post->caption))
+            $columnArray[] = "caption = '$post->caption'";
+
+        $query = "UPDATE posts SET " . implode(",", $columnArray) . " WHERE id LIKE '$post->id';";
 
         try {
             $this->executeQuery($query);
@@ -82,10 +84,10 @@ class PostService extends BaseService
     {
         $id = $this->realEscapeString($id);
 
-        if(empty($id))
-            throw new GeneralException(GeneralException::EMPTY_PARAMETERS,"missing id parameter");
+        if (empty($id))
+            throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing id parameter");
 
-        $query = "DELETE FROM posts WHERE id = $id";
+        $query = "DELETE FROM posts WHERE id = '$id'";
 
         try {
             $this->executeQuery($query);
@@ -95,31 +97,73 @@ class PostService extends BaseService
     }
 
     /**
-     * gets all posts either in homepage or a user's account
+     * gets all posts/ a single post
      * @return object[]
      */
     public function fetchPosts(SearchPostRequest $request)
     {
-        
+
         $query = "SELECT  p.id, p.post, p.caption, COUNT(l.post_id) AS total_likes
         FROM posts p LEFT JOIN likes l ON p.id = l.post_id WHERE 1=1";
 
-        if(!empty($request->id))
-            $query .= " AND id = '$request->id'";
+        if (!empty($request->id))
+            $query .= " AND p.id = '$request->id'";
 
-        if(!empty($request->fromDate) && !empty($request->toDate))
+        if (!empty($request->fromDate) && !empty($request->toDate))
             $query .= " AND time_stamp BETWEEN '$request->fromDate' AND '$request->toDate'";
+
+        if(date($request->fromDate)>date($request->toDate))
+            throw new GeneralException(GeneralException::INVALID_DATE_RANGE);
 
         $query .= " GROUP BY p.id LIMIT $request->startIndex, $request->endIndex;";
 
-        // $response = new PostResponse();
+        echo "->>>>>>>>>>>>>>>>>>>>>>>>>>".var_dump(date('Y-m-d H:i:s'));
+        $response = new PostResponse();
         try {
-            $posts = $this->executeQueryForList($query);
+            $response->posts = $this->executeQueryForList($query);
         } catch (Exception $e) {
             throw $e;
         }
-        return $posts;
-
+        return $response;
     }
 
+    /**
+     * @param Like $like
+     */
+    public function likePost(Like $like)
+    {
+        $like = $this->realEscapeObject($like);
+        $like->createdBy = $GLOBALS["userId"] ?? $like->createdBy;
+        $like->updatedBy = $GLOBALS["userId"] ?? $like->updatedBy;
+
+        $like->id = UuidUtil::guidv4();
+
+        $query = "INSERT INTO likes (id, user_id, post_id, created_by, updated_by)
+        VALUES('$like->id', '$like->userId', '$like->postId', '$like->createdBy',
+        '$like->updatedBy');";
+        try {
+            $this->executeQuery($query);
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * @param Like $like
+     */
+    public function removeLike(string $id)
+    {
+        $id = $this->realEscapeString($id);
+
+        if (empty($id))
+            throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing id parameter");
+
+        $query = "DELETE FROM likes WHERE id LIKE '$id';";
+
+        try {
+            $this->executeQuery($query);
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
 }

@@ -11,12 +11,12 @@ class SearchPostRequest extends BaseRequest{
     public $id;
 
     /**
-     * @var date
+     * @var String
      */
     public $fromDate;
 
     /**
-     * @var date
+     * @var String
      */
     public $toDate;
 

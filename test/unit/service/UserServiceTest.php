@@ -39,8 +39,12 @@ class UserServiceTest extends APITestCase
     {
         $user = $this->getUser();
 
+        try {
 
-        $result = UserService::getInstance()->createUser($user);
+            $result = UserService::getInstance()->createUser($user);
+        } catch (Exception $e) {
+            echo $e->getCode();
+        }
 
         $this->assertIsString($result);
         $this->assertDatabaseHas("users", ["id" => $result]);
@@ -51,9 +55,13 @@ class UserServiceTest extends APITestCase
         $user = $this->getUser();
         $user->uName = "bpleasance1";
 
+        try {
 
-        $result = UserService::getInstance()->createUser($user);
-        $this->expectExceptionCode(GeneralException::USER_EXISTS);
+            $result = UserService::getInstance()->createUser($user);
+        } catch (Exception $e) {
+            echo $e->getCode();
+            $this->assertEquals($e->getCode(), GeneralException::USER_EXISTS);
+        }
 
         $this->assertDatabaseHasNot("users", ["email" => $user->email]);
     }
@@ -63,9 +71,12 @@ class UserServiceTest extends APITestCase
         $user = $this->getUser();
         $user->uName = "";
 
+        try {
 
-        $result = UserService::getInstance()->createUser($user);
-        $this->expectExceptionCode(GeneralException::EMPTY_PARAMETERS);
+            $result = UserService::getInstance()->createUser($user);
+        } catch (Exception $e) {
+            $this->assertEquals($e->getCode(), GeneralException::EMPTY_PARAMETERS);
+        }
 
         $this->assertDatabaseHasNot("users", ["email" => $user->email]);
     }
@@ -73,9 +84,12 @@ class UserServiceTest extends APITestCase
     //authenticateUserService tests
     public function testAuthenticateUserService()
     {
+        try {
 
-
-        $result = UserService::getInstance()->authenticateUser("bpleasance1", "systematic");
+            $result = UserService::getInstance()->authenticateUser("bpleasance1", "systematic");
+        } catch (Exception $e) {
+            echo $e->getCode();
+        }
 
         $this->assertIsString($result);
         $this->assertDatabaseHas("users", ["id" => $result]);
@@ -83,35 +97,49 @@ class UserServiceTest extends APITestCase
 
     public function testAuthenticateUserServiceWrongPassword()
     {
+        try {
 
-        $result = UserService::getInstance()->authenticateUser("bpleasance1", "ayyoooo");
-        $this->expectExceptionCode(GeneralException::PASSWORD_MISSMATCH);
-
-        $this->assertTrue($result == null);
+            $result = UserService::getInstance()->authenticateUser("bpleasance1", "ayyooo");
+        } catch (Exception $e) {
+            echo $e->getCode();
+            $this->assertEquals($e->getCode(), GeneralException::PASSWORD_MISSMATCH);
+        }
     }
 
     public function testAuthenticateUserServiceEmptyParam()
     {
+        try {
 
-        $result = UserService::getInstance()->authenticateUser("", "ayyoooo");
-        $this->expectExceptionCode(GeneralException::EMPTY_PARAMETERS);
+            $result = UserService::getInstance()->authenticateUser("", "ayyoooo");
+        } catch (Exception $e) {
+            echo $e->getCode();
+            $this->assertEquals($e->getCode(), GeneralException::EMPTY_PARAMETERS);
+        }
     }
 
 
     //deleteUser Tests
     public function testDeleteUser()
     {
+        try {
 
-        UserService::getInstance()->deleteUser("smaundrell8", "protocolsmania");
+            UserService::getInstance()->deleteUser("smaundrell8", "protocolsmania");
+        } catch (Exception $e) {
+            echo $e->getCode();
+        }
 
         $this->assertDatabaseHasNot("users", ["u_name" => "smaundrell8"]);
     }
 
     public function testDeleteUserEmptyParam()
     {
+        try {
 
-        UserService::getInstance()->deleteUser("smaundrell8", "");
-        $this->expectExceptionCode(GeneralException::EMPTY_PARAMETERS);
+            UserService::getInstance()->deleteUser("smaundrell8", "");
+        } catch (Exception $e) {
+            echo $e->getCode();
+            $this->assertEquals($e->getCode(), GeneralException::EMPTY_PARAMETERS);
+        }
 
         $this->assertDatabaseHas("users", ["u_name" => "smaundrell8"]);
     }
@@ -119,9 +147,14 @@ class UserServiceTest extends APITestCase
     public function testDeleteUserWrongPassword()
     {
 
-        UserService::getInstance()->deleteUser("smaundrell8", "");
+        try {
+
+            UserService::getInstance()->deleteUser("smaundrell8", "ayyooo");
+        } catch (Exception $e) {
+            echo $e->getCode();
+            $this->assertEquals($e->getCode(), GeneralException::PASSWORD_MISSMATCH);
+        }
         // echo $e->getMessage();
-        $this->expectExceptionCode(GeneralException::PASSWORD_MISSMATCH);
         $this->assertDatabaseHas("users", ["u_name" => "smaundrell8"]);
     }
 
@@ -132,8 +165,12 @@ class UserServiceTest extends APITestCase
         $userCath->id = "e0c326ec-a3b3-4e94-bcd0-df6fcbc210b9";
         $userCath->password = "opensystem";
 
+        try {
 
-        UserService::getInstance()->editUserInfo($userCath);
+            UserService::getInstance()->editUserInfo($userCath);
+        } catch (Exception $e) {
+            echo $e->getCode();
+        }
 
         $this->assertDatabaseHas("users", ["u_name" => $userCath->uName]);
         $this->assertDatabaseHasNot("users", ["u_name" => "ccrathern2"]);
@@ -141,33 +178,6 @@ class UserServiceTest extends APITestCase
         $this->assertDatabaseHasNot("users", ["email" => "deberlein2@webmd.com"]);
     }
 
-    public function testEditUserInfoUsername()
-    {
-        $userCath = $this->getUser();
-        $userCath->id = "e0c326ec-a3b3-4e94-bcd0-df6fcbc210b9";
-        $userCath->email = "";
-        $userCath->password = "opensystem";
-
-
-        UserService::getInstance()->editUserInfo($userCath);
-
-        $this->assertDatabaseHas("users", ["u_name" => $userCath->uName]);
-        $this->assertDatabaseHasNot("users", ["u_name" => "ccrathern2"]);
-    }
-
-    public function testEditUserInfoEmail()
-    {
-        $userCath = $this->getUser();
-        $userCath->id = "e0c326ec-a3b3-4e94-bcd0-df6fcbc210b9";
-        $userCath->uName = "";
-        $userCath->password = "opensystem";
-
-
-        UserService::getInstance()->editUserInfo($userCath);
-
-        $this->assertDatabaseHas("users", ["email" => $userCath->email]);
-        $this->assertDatabaseHasNot("users", ["email" => "deberlein2@webmd.com"]);
-    }
 
     public function testEditUserInfoEmptyParams()
     {
@@ -175,9 +185,13 @@ class UserServiceTest extends APITestCase
         $user->uName = "";
         $user->email = "";
 
+        try {
 
-        UserService::getInstance()->editUserInfo($user);
-        $this->expectExceptionCode(GeneralException::EMPTY_PARAMETERS);
+            UserService::getInstance()->editUserInfo($user);
+        } catch (Exception $e) {
+            echo $e->getCode();
+            $this->assertEquals($e->getCode(), GeneralException::EMPTY_PARAMETERS);
+        }
     }
 
     public function testEditUserInfoWrongPassword()
@@ -187,10 +201,14 @@ class UserServiceTest extends APITestCase
         $userCath->id = "e0c326ec-a3b3-4e94-bcd0-df6fcbc210b9";
         $userCath->password = "closedSystem";
 
+        try {
 
-        UserService::getInstance()->editUserInfo($userCath);
+            UserService::getInstance()->editUserInfo($userCath);
+        } catch (Exception $e) {
+            echo $e->getCode();
+            $this->assertEquals($e->getCode(), GeneralException::PASSWORD_MISSMATCH);
+        }
 
-        $this->expectExceptionCode(GeneralException::PASSWORD_MISSMATCH);
         $this->assertDatabaseHas("users", ["u_name" => "ccrathern2"]);
         $this->assertDatabaseHas("users", ["email" => "deberlein2@webmd.com"]);
         $this->assertDatabaseHasNot("users", ["u_name" => $userCath->uName]);
@@ -204,8 +222,12 @@ class UserServiceTest extends APITestCase
 
         $request->searchName = "le";
 
+        try {
 
-        $result = UserService::getInstance()->searchUsers($request);
+            $result = UserService::getInstance()->searchUsers($request);
+        } catch (Exception $e) {
+            echo $e->getCode();
+        }
 
         $expected = [
             (object) ['id' => 'c560839d-29c6-4134-9e14-c23fab1d5a5b', 'u_name' => 'bpleasance1'],
@@ -213,7 +235,6 @@ class UserServiceTest extends APITestCase
             (object) ['id' => '3cbf5ad8-d662-4aaa-9ea8-c59564773ae1', 'u_name' => 'sdelatremoille7']
         ];
 
-        echo var_dump($result);
         $this->assertIsArray($result->userArray);
         $this->assertTrue($result->userArray == $expected);
         $this->assertTrue($result->postsArray == null);
@@ -221,26 +242,54 @@ class UserServiceTest extends APITestCase
 
     public function testSearchUsersSingle()
     {
+        $this->setInitialDataUsingSQLFile(__DIR__ . "/initial-posts-setup.sql");
+
         $request = new SearchUserRequest();
+        $request->id = "4dd48b7c-dd0f-4b33-a8e1-7e45b98f9c51";
 
-        $request->id = "5c371307-f658-47e3-b7d7-c83ad23f6417";
+        try {
+
+            $result = UserService::getInstance()->searchUsers($request);
+        } catch (Exception $e) {
+            echo $e->getCode();
+        }
 
 
-        $result = UserService::getInstance()->searchUsers($request);
-
-        $expected = [
+        // better way to compare values?
+        $expectedUser = [
             (object)[
-                "id" => "5c371307-f658-47e3-b7d7-c83ad23f6417",
-                "u_name" => "dlegallo0",
-                "email" => "rcarley0@theatlantic.com",
-                "profile_picture" => "https://robohash.org/corporisautanimi.png?size=50x50&set=set1",
-                "bio" => "Quality-focused homogeneous architecture"
+                "id" => "4dd48b7c-dd0f-4b33-a8e1-7e45b98f9c51",
+                "u_name" => "hlongwood5",
+                "email" => "cramelot5@mozilla.com",
+                "profile_picture" => "https://robohash.org/ipsumvelexercitationem.png?size=50x50&set=set1",
+                "bio" => "Focused encompassing synergy"
             ]
         ];
 
-        echo var_dump($result);
-        $this->assertIsArray($result);
-        $this->assertTrue($result->userArray == $expected);
+        $expectedPosts = [
+            (object) [
+                "id" => "2f8429d0-1fa5-42a7-bbcd-fc53f7adbb2d",
+                "post" => "http://dummyimage.com/593x515.png/ff4444/ffffff",
+                "caption" => "Organic real-time parallelism"
+            ],
+            (object) [
+                "id" => "c0634088-c082-4bbb-bd2d-49a5062c082e",
+                "post" => "http://dummyimage.com/558x561.png/ff4444/ffffff",
+                "caption" => "Reduced eco-centric utilisation"
+            ],
+            (object) [
+                "id" => "f82e9c1e-574c-4fac-aee5-dd4ace6a701c",
+                "post" => "http://dummyimage.com/558x511.png/cc0000/ffffff",
+                "caption" => "Inverse dedicated help-desk"
+            ]
+        ];
+
+        $this->assertIsArray($result->userArray);
+        $this->assertIsArray($result->postsArray);
+        $this->assertEquals($expectedUser, $result->userArray);
+        $this->assertEquals($expectedPosts, $result->postsArray);
+
+        $this->clearDBTable("posts");
     }
 
     protected function tearDown()

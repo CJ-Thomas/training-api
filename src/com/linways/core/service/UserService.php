@@ -38,12 +38,12 @@ class UserService extends BaseService
         $uName = $this->realEscapeString($uName);
 
         $query = "SELECT id FROM users WHERE u_name = '$uName';";
-        try{
+        try {
             $result = $this->executeQueryForObject($query);
-        } catch( Exception $e) {
+        } catch (Exception $e) {
             throw $e;
         }
-        
+
         if (!empty($result->id))
             return true;
 
@@ -63,8 +63,8 @@ class UserService extends BaseService
 
         $this->validateUser($user);
 
-        if($this->checkUserExist($user->uName))
-            throw new GeneralException(GeneralException::USER_EXISTS,"user already exisits");
+        if ($this->checkUserExist($user->uName))
+            throw new GeneralException(GeneralException::USER_EXISTS, "user already exisits");
 
         $user->password = password_hash($user->password, PASSWORD_DEFAULT);
 
@@ -78,14 +78,12 @@ class UserService extends BaseService
             '$user->bio', '$user->role', '$user->createdBy', '$user->updatedBy');";
 
         try {
-            $result = $this->executeQueryForObject($query);
+            $result = $this->executeQuery($query);
         } catch (Exception $e) {
             throw $e;
         }
 
-        echo var_dump($result);
-
-        return $result->id;
+        return $user->id;
     }
 
     /**
@@ -107,14 +105,13 @@ class UserService extends BaseService
         $query = "SELECT id, password FROM users WHERE u_name = '$userName';";
 
         try {
-            $result = $this->executeQueryForObject($query, FALSE, $this->mapper);
+            $result = $this->executeQueryForObject($query);
         } catch (Exception $e) {
             throw $e;
         }
 
-        
         if (!password_verify($password, $result->password))
-            throw new GeneralException(GeneralException::PASSWORD_MISSMATCH,"entered password does not match");
+            throw new GeneralException(GeneralException::PASSWORD_MISSMATCH, "entered password does not match");
 
         return $result->id;
     }
@@ -139,10 +136,9 @@ class UserService extends BaseService
             $passwordResult = $this->executeQueryForObject($passwordSelectQuery);
 
             if (!password_verify($password, $passwordResult->password))
-                throw new GeneralException(GeneralException::PASSWORD_MISSMATCH,"entered password does not match");
+                throw new GeneralException(GeneralException::PASSWORD_MISSMATCH, "entered password does not match");
 
             $this->executeQuery($deleteQuery);
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -163,21 +159,21 @@ class UserService extends BaseService
 
         if (!empty($user->uName)) {
             Validator::alnum()->noWhitespace()->length(4, 30)->check($user->uName);
-            $columnArray[] =" u_name = '$user->uName'";
+            $columnArray[] = " u_name = '$user->uName'";
         }
 
         if (!empty($user->email)) {
             Validator::email()->check($user->email);
-            $columnArray[] =" email = '$user->email'";
+            $columnArray[] = " email = '$user->email'";
         }
 
-        $updateQuery = "UPDATE users SET".implode(",",$columnArray)." WHERE id LIKE '$user->id';";
+        $updateQuery = "UPDATE users SET" . implode(",", $columnArray) . " WHERE id LIKE '$user->id';";
 
         try {
             $passwordResult = $this->executeQueryForObject($passwordSelectQuery);
 
             if (!password_verify($user->password, $passwordResult->password))
-                throw new GeneralException(GeneralException::PASSWORD_MISSMATCH,"enterd password does not match");
+                throw new GeneralException(GeneralException::PASSWORD_MISSMATCH, "enterd password does not match");
 
 
             $this->executeQuery($updateQuery);
@@ -197,29 +193,27 @@ class UserService extends BaseService
     {
         $request = $this->realEscapeObject($request);
 
-        if(!empty($request->id)){
+        if (!empty($request->id)) {
             $selectUserQuery = "SELECT id, u_name, email, profile_picture, bio FROM users
             WHERE id LIKE '$request->id';";
 
             $selectUserPostsQuery = "SELECT id, post, caption FROM posts 
-            WHERE user_id = $request->id;";
-
-            
+            WHERE user_id = '$request->id';";
         } else {
-            $whereQuery = (!empty($request->searchName))? "WHERE u_name LIKE '%$request->searchName%' ":"";
+            $whereQuery = (!empty($request->searchName)) ? "WHERE u_name LIKE '%$request->searchName%' " : "";
             $limitQuery = "LIMIT $request->startIndex, $request->endIndex;";
-    
-            $selectUserQuery = "SELECT id, u_name FROM users ".$whereQuery.$limitQuery;
+
+            $selectUserQuery = "SELECT id, u_name FROM users " . $whereQuery . $limitQuery;
         }
 
         $response = new UserResponse();
 
         try {
-            $response->userArray = $this->executeQueryForList($selectUserQuery, $this->mapper);
+            $response->userArray = $this->executeQueryForList($selectUserQuery);
 
-            if(!empty($request->id))
-                $response->postsArray = $this->executeQueryForObject($selectUserPostsQuery, PostServiceMapper::getInstance()->getMapper());
-
+            if (!empty($request->id)) {
+                $response->postsArray = $this->executeQueryForList($selectUserPostsQuery);
+            }
         } catch (Exception $e) {
             throw $e;
         }
@@ -231,7 +225,7 @@ class UserService extends BaseService
     {
 
         if (empty($user->uName) || empty($user->password) || empty($user->email))
-            throw new GeneralException(GeneralException::EMPTY_PARAMETERS,"miss paramters");
+            throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "miss paramters");
 
         $userValidator = Validator::attribute("uName", validator::stringType()->length(4, 30))
             ->attribute("email", validator::email())
