@@ -18,12 +18,17 @@ class Post extends BaseDTO{
     /**
      * @var string
      */
-	public $post;
+	public $content;
 
     /**
      * @var string
      */
 	public $caption;
+
+    /**
+     * @var string
+     */
+    public $timeStamp;
 
 }
 

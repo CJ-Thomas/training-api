@@ -8,6 +8,16 @@ class SearchPostRequest extends BaseRequest{
     /**
      * @var String
      */
-    public $userId;
+    public $id;
+
+    /**
+     * @var date
+     */
+    public $fromDate;
+
+    /**
+     * @var date
+     */
+    public $toDate;
 
 }

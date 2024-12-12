@@ -31,7 +31,7 @@ class CommentServiceMapper implements IMapper{
     public function getMapper()
     {
         if (empty($this->mapper)) {
-            $this->mapper[self::SEARCH_COMMENT] = $this->getMapper();
+            $this->mapper[self::SEARCH_COMMENT] = $this->getComment();
         }
         return $this->mapper;
     }

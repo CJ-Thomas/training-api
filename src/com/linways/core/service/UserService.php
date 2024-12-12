@@ -2,14 +2,14 @@
 
 namespace com\linways\core\service;
 
-use com\linways\base\exception\CoreException;
 use com\linways\base\util\MakeSingletonTrait;
 use com\linways\core\dto\User;
-use com\linways\core\exception\ParameterException;
-use com\linways\core\exception\UserException;
+use com\linways\core\exception\GeneralException;
+use com\linways\core\mapper\PostServiceMapper;
 use com\linways\core\util\UuidUtil;
 use com\linways\core\mapper\UserServiceMapper;
 use com\linways\core\request\SearchUserRequest;
+use com\linways\core\response\UserResponse;
 use Respect\Validation\Validator;
 use Exception;
 
@@ -38,10 +38,13 @@ class UserService extends BaseService
         $uName = $this->realEscapeString($uName);
 
         $query = "SELECT id FROM users WHERE u_name = '$uName';";
-
-        $result = $this->executeQuery($query,TRUE);
-
-        if (!empty($result))
+        try{
+            $result = $this->executeQueryForObject($query);
+        } catch( Exception $e) {
+            throw $e;
+        }
+        
+        if (!empty($result->id))
             return true;
 
         return false;
@@ -61,7 +64,7 @@ class UserService extends BaseService
         $this->validateUser($user);
 
         if($this->checkUserExist($user->uName))
-            throw new UserException(UserException::USER_EXISTS,"user already exisits");
+            throw new GeneralException(GeneralException::USER_EXISTS,"user already exisits");
 
         $user->password = password_hash($user->password, PASSWORD_DEFAULT);
 
@@ -75,12 +78,14 @@ class UserService extends BaseService
             '$user->bio', '$user->role', '$user->createdBy', '$user->updatedBy');";
 
         try {
-            $this->executeQuery($query);
+            $result = $this->executeQueryForObject($query);
         } catch (Exception $e) {
             throw $e;
         }
 
-        return $user->id;
+        echo var_dump($result);
+
+        return $result->id;
     }
 
     /**
@@ -97,19 +102,19 @@ class UserService extends BaseService
 
 
         if (empty($userName) || empty($password))
-            throw new ParameterException(ParameterException::EMPTY_PARAMETERS, "missing parameters");
+            throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing parameters");
 
         $query = "SELECT id, password FROM users WHERE u_name = '$userName';";
 
         try {
-            $result = $this->executeQueryForObject($query);
+            $result = $this->executeQueryForObject($query, FALSE, $this->mapper);
         } catch (Exception $e) {
             throw $e;
         }
 
         
         if (!password_verify($password, $result->password))
-            throw new UserException(UserException::PASSWORD_MISSMATCH,"entered password does not match");
+            throw new GeneralException(GeneralException::PASSWORD_MISSMATCH,"entered password does not match");
 
         return $result->id;
     }
@@ -118,7 +123,6 @@ class UserService extends BaseService
      * Delete an existing user
      * @param string $userName
      * @param string $password
-     * @return bool
      */
     public function deleteUser(string $userName, string $password)
     {
@@ -126,7 +130,7 @@ class UserService extends BaseService
         $password = $this->realEscapeString($password);
 
         if (empty($userName) || empty($password))
-            throw new ParameterException(ParameterException::EMPTY_PARAMETERS, "missing parameters");
+            throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing parameters");
 
         $passwordSelectQuery = "SELECT password FROM users WHERE u_name = '$userName';";
         $deleteQuery = "DELETE FROM users WHERE u_name = '$userName';";
@@ -135,14 +139,13 @@ class UserService extends BaseService
             $passwordResult = $this->executeQueryForObject($passwordSelectQuery);
 
             if (!password_verify($password, $passwordResult->password))
-                throw new UserException(UserException::PASSWORD_MISSMATCH,"entered password does not match");
+                throw new GeneralException(GeneralException::PASSWORD_MISSMATCH,"entered password does not match");
 
-            $deleteResult = $this->executeQueryForObject($deleteQuery);
+            $this->executeQuery($deleteQuery);
+
         } catch (Exception $e) {
             throw $e;
         }
-
-        return $deleteResult;
     }
 
     /**
@@ -154,18 +157,18 @@ class UserService extends BaseService
         $user = $this->realEscapeObject($user);
 
         if ((empty($user->uName) && empty($user->email)) || empty($user->password))
-            throw new ParameterException(ParameterException::EMPTY_PARAMETERS, "missing parameters");
+            throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing parameters");
 
         $passwordSelectQuery = "SELECT password FROM users WHERE id = '$user->id';";
 
-        if (!empty($userName)) {
-            Validator::alnum()->noWhitespace()->length(4, 30)->check($userName);
-            $columnArray[] =" u_name = '$userName'";
+        if (!empty($user->uName)) {
+            Validator::alnum()->noWhitespace()->length(4, 30)->check($user->uName);
+            $columnArray[] =" u_name = '$user->uName'";
         }
 
-        if (!empty($email)) {
-            Validator::email()->check($email);
-            $columnArray[] =" email = '$email'";
+        if (!empty($user->email)) {
+            Validator::email()->check($user->email);
+            $columnArray[] =" email = '$user->email'";
         }
 
         $updateQuery = "UPDATE users SET".implode(",",$columnArray)." WHERE id LIKE '$user->id';";
@@ -174,7 +177,7 @@ class UserService extends BaseService
             $passwordResult = $this->executeQueryForObject($passwordSelectQuery);
 
             if (!password_verify($user->password, $passwordResult->password))
-                throw new UserException(UserException::PASSWORD_MISSMATCH,"enterd password does not match");
+                throw new GeneralException(GeneralException::PASSWORD_MISSMATCH,"enterd password does not match");
 
 
             $this->executeQuery($updateQuery);
@@ -188,32 +191,47 @@ class UserService extends BaseService
     /**
      * Fetching users
      * @param SearchUserRequest
-     * @return Object[("id"=>string, "u_name"=>string)] $userArray
+     * @return UserResponse
      */
     public function searchUsers(SearchUserRequest $request)
     {
         $request = $this->realEscapeObject($request);
 
-        $whereQuery = (!empty($request->name))? "WHERE u_name LIKE '%$request->name%' ":"";
-        $limitQuery = "LIMIT $request->startIndex, $request->endIndex;";
+        if(!empty($request->id)){
+            $selectUserQuery = "SELECT id, u_name, email, profile_picture, bio FROM users
+            WHERE id LIKE '$request->id';";
 
-        $query = "SELECT id, u_name FROM users ".$whereQuery.$limitQuery;
+            $selectUserPostsQuery = "SELECT id, post, caption FROM posts 
+            WHERE user_id = $request->id;";
+
+            
+        } else {
+            $whereQuery = (!empty($request->searchName))? "WHERE u_name LIKE '%$request->searchName%' ":"";
+            $limitQuery = "LIMIT $request->startIndex, $request->endIndex;";
+    
+            $selectUserQuery = "SELECT id, u_name FROM users ".$whereQuery.$limitQuery;
+        }
+
+        $response = new UserResponse();
 
         try {
-            $userArray = $this->executeQueryForList($query);
+            $response->userArray = $this->executeQueryForList($selectUserQuery, $this->mapper);
+
+            if(!empty($request->id))
+                $response->postsArray = $this->executeQueryForObject($selectUserPostsQuery, PostServiceMapper::getInstance()->getMapper());
+
         } catch (Exception $e) {
             throw $e;
         }
 
-        return $userArray;
+        return $response;
     }
-
 
     private function validateUser(User $user)
     {
 
         if (empty($user->uName) || empty($user->password) || empty($user->email))
-            throw new ParameterException(ParameterException::EMPTY_PARAMETERS,"miss paramters");
+            throw new GeneralException(GeneralException::EMPTY_PARAMETERS,"miss paramters");
 
         $userValidator = Validator::attribute("uName", validator::stringType()->length(4, 30))
             ->attribute("email", validator::email())

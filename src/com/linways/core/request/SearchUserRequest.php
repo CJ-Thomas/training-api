@@ -12,5 +12,10 @@ class SearchUserRequest extends BaseRequest{
     /**
      * @var String
      */
-    public $name;
+    public $searchName;
+
+    /**
+     * @var String
+     */
+    public $uName;
 }
