@@ -22,7 +22,7 @@ class CommentServiceMapper implements IMapper{
         $mapper->results[] = new Result("id", "id");
         $mapper->results[] = new Result("userId", "user_id");
         $mapper->results[] = new Result("postId", "post_id");
-        $mapper->results[] = new Result("comment", "comment");
+        $mapper->results[] = new Result("content", "comment");
         $mapper->results[] = new Result("parentCommentId", "parent_comment_id");
     
         return $mapper;

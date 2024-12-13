@@ -78,7 +78,7 @@ class UserService extends BaseService
             '$user->bio', '$user->role', '$user->createdBy', '$user->updatedBy');";
 
         try {
-            $result = $this->executeQuery($query);
+            $result = $this->executeQueryForObject($query);
         } catch (Exception $e) {
             throw $e;
         }

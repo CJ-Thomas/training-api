@@ -2,6 +2,7 @@
 
 namespace test\unit\service;
 
+use com\linways\core\dto\Like;
 use com\linways\core\dto\Post;
 use com\linways\core\exception\GeneralException;
 use com\linways\core\request\SearchPostRequest;
@@ -26,6 +27,16 @@ class PostServiceTest extends APITestCase
         $post->caption = "Vision-oriented incremental open system";
 
         return $post;
+    }
+
+    private function getLike()
+    {
+        $like = new Like();
+        $like->id = "";
+        $like->userId = "3cbf5ad8-d662-4aaa-9ea8-c59564773ae1";
+        $like->postId = "a97257d5-6956-4011-866a-ca9dcce4f181";
+
+        return $like;
     }
 
     //createPost Tests
@@ -100,34 +111,19 @@ class PostServiceTest extends APITestCase
         $this->assertDatabaseHasNot("posts", ["id" => "2f8429d0-1fa5-42a7-bbcd-fc53f7adbb2d"]);
     }
 
-    public function testDeletePostEmptyParam(){
+    public function testDeletePostEmptyParam()
+    {
         try {
             PostService::getInstance()->deletePost("");
         } catch (Exception $e) {
             echo $e->getMessage();
             $this->assertEquals($e->getCode(), GeneralException::EMPTY_PARAMETERS);
-
         }
     }
 
-    public function testFetchPostUsingId(){
-
-        $this->setInitialDataUsingSQLFile(__DIR__ . "/initial-likes-setup.sql");
-
-        $request = new SearchPostRequest();
-        $request->id = "2f8429d0-1fa5-42a7-bbcd-fc53f7adbb2d";
-        try {
-            $result = PostService::getInstance()->fetchPosts($request);
-        } catch( Exception $e ) {
-
-        }
-
-        $this->assertIsArray($result->posts);
-
-        $this->clearDBTable("likes");
-    }
-
-    public function testFetchPostWithoutId(){
+    // fetchPost Tests
+    public function testFetchPostWithoutId()
+    {
 
         $this->setInitialDataUsingSQLFile(__DIR__ . "/initial-likes-setup.sql");
 
@@ -135,8 +131,7 @@ class PostServiceTest extends APITestCase
         $request->id = "";
         try {
             $result = PostService::getInstance()->fetchPosts($request);
-        } catch( Exception $e ) {
-
+        } catch (Exception $e) {
         }
 
         $this->assertIsArray($result->posts);
@@ -144,7 +139,26 @@ class PostServiceTest extends APITestCase
         $this->clearDBTable("likes");
     }
 
-    public function testFetchPostUsingFromDate(){
+    public function testFetchPostUsingId()
+    {
+
+        $this->setInitialDataUsingSQLFile(__DIR__ . "/initial-likes-setup.sql");
+
+        $request = new SearchPostRequest();
+        $request->id = "2f8429d0-1fa5-42a7-bbcd-fc53f7adbb2d";
+        try {
+            $result = PostService::getInstance()->fetchPosts($request);
+        } catch (Exception $e) {
+        }
+
+        $this->assertIsArray($result->posts);
+
+        $this->clearDBTable("likes");
+    }
+
+
+    public function testFetchPostUsingFromDate()
+    {
 
         $this->setInitialDataUsingSQLFile(__DIR__ . "/initial-likes-setup.sql");
 
@@ -153,14 +167,90 @@ class PostServiceTest extends APITestCase
         $request->toDate = "2024-12-12 12:35:58";
         try {
             $result = PostService::getInstance()->fetchPosts($request);
-        } catch( Exception $e ) {
-
+        } catch (Exception $e) {
         }
 
-        echo var_dump($result);
         $this->assertIsArray($result->posts);
 
         $this->clearDBTable("likes");
+    }
+
+    public function testFetchPostInvalidDate()
+    {
+        $this->setInitialDataUsingSQLFile(__DIR__ . "/initial-likes-setup.sql");
+
+        $request = new SearchPostRequest();
+        $request->fromDate = "2024-12-12 12:35:58";
+        $request->toDate = "2024-01-19 23:28:46";
+
+        try {
+            $result = PostService::getInstance()->fetchPosts($request);
+        } catch (Exception $e) {
+            echo $e->getMessage();
+            $this->assertEquals($e->getCode(), GeneralException::INVALID_DATE_RANGE);
+        }
+
+        $this->clearDBTable("likes");
+    }
+
+    //LikePost tests
+    public function testLikePost()
+    {
+        $like = $this->getLike();
+
+        try {
+            $result = PostService::getInstance()->likePost($like);
+        } catch (Exception $e) {
+        }
+
+        $this->assertDatabaseHas("likes", ["id" => $result->id]);
+    }
+
+    public function testLikePostEmptyParam()
+    {
+
+        $like = $this->getLike();
+
+        $like->userId = "";
+
+        try {
+            $like = PostService::getInstance()->likePost($like);
+        } catch (Exception $e) {
+
+            echo $e->getMessage();
+            $this->assertEquals($e->getCode(), GeneralException::EMPTY_PARAMETERS);
+        }
+    }
+
+    //removeLike tests
+    public function testRemoveLike()
+    {
+
+        $this->setInitialDataUsingSQLFile(__DIR__ . "/initial-likes-setup.sql");
+
+        $id = "3a41a9ea-d78d-410f-8ec4-b6037f9b748c";
+
+        try {
+            PostService::getInstance()->removeLike($id);
+        } catch (Exception $e) {
+        }
+
+        $this->assertDatabaseHasNot("likes", ["id" => $id]);
+
+        $this->clearDBTable("likes");
+    }
+
+    public function testRemoveLikeEmptyParam()
+    {
+
+        $id = "";
+
+        try {
+            PostService::getInstance()->removeLike($id);
+        } catch (Exception $e) {
+            echo $e->getMessage();
+            $this->assertEquals($e->getCode(), GeneralException::EMPTY_PARAMETERS);
+        }
     }
 
     protected function tearDown()

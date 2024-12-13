@@ -112,12 +112,11 @@ class PostService extends BaseService
         if (!empty($request->fromDate) && !empty($request->toDate))
             $query .= " AND time_stamp BETWEEN '$request->fromDate' AND '$request->toDate'";
 
-        if(date($request->fromDate)>date($request->toDate))
+        if(date($request->fromDate) > date($request->toDate))
             throw new GeneralException(GeneralException::INVALID_DATE_RANGE);
 
         $query .= " GROUP BY p.id LIMIT $request->startIndex, $request->endIndex;";
 
-        echo "->>>>>>>>>>>>>>>>>>>>>>>>>>".var_dump(date('Y-m-d H:i:s'));
         $response = new PostResponse();
         try {
             $response->posts = $this->executeQueryForList($query);
@@ -129,12 +128,16 @@ class PostService extends BaseService
 
     /**
      * @param Like $like
+     * @return Like
      */
     public function likePost(Like $like)
     {
         $like = $this->realEscapeObject($like);
         $like->createdBy = $GLOBALS["userId"] ?? $like->createdBy;
         $like->updatedBy = $GLOBALS["userId"] ?? $like->updatedBy;
+
+        if( empty($like->userId) || empty($like->postId ))
+            throw new GeneralException(GeneralException::EMPTY_PARAMETERS);
 
         $like->id = UuidUtil::guidv4();
 
@@ -146,6 +149,7 @@ class PostService extends BaseService
         } catch (Exception $e) {
             throw $e;
         }
+        return $like;
     }
 
     /**

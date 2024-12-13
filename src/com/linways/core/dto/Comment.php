@@ -28,7 +28,7 @@ class Comment extends BaseDTO {
     /**
      * @var string
      */
-	public $comment;
+	public $content;
 
 }
 ?>
