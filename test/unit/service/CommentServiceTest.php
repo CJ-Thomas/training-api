@@ -121,7 +121,7 @@ class CommentServiceTest extends APITestCase{
 
         echo "->>>>>>>>>>>>>>>>>>>>>>>>>>>>>with id\n";
         echo var_dump($result)."\n";
-        $this->assertIsArray($result->comments);
+        $this->assertIsArray($result);
     }
 
     public function testFetchCommentWithPostId(){
@@ -136,7 +136,7 @@ class CommentServiceTest extends APITestCase{
 
         echo "->>>>>>>>>>>>>>>>>>>>>>>>>>>>>with post id\n";
         echo var_dump($result)."\n";
-        $this->assertIsArray($result->comments);
+        $this->assertIsArray($result);
     }
 
     public function testFetchCommentWithUserId(){
@@ -151,12 +151,12 @@ class CommentServiceTest extends APITestCase{
 
         echo "->>>>>>>>>>>>>>>>>>>>>>>>>>>>>with user id\n";
         echo var_dump($result)."\n";
-        $this->assertIsArray($result->comments);
+        $this->assertIsArray($result);
     }
 
     public function testFetchCommentWithParentCommentId(){
         $request = new SearchCommentRequest();
-        $request->parentCommentId = "c560839d-29c6-4134-9e14-c23fab1d5a5b";
+        $request->parentCommentId = "5970d16a-31f8-4a9d-a73d-b1582db8c7d0";
 
         try{
             $result = CommentService::getInstance()->fetchComments($request);
@@ -166,7 +166,7 @@ class CommentServiceTest extends APITestCase{
 
         echo "->>>>>>>>>>>>>>>>>>>>>>>>>>>>>with parent comment id\n";
         echo var_dump($result)."\n";
-        $this->assertIsArray($result->comments);
+        $this->assertIsArray($result);
     }
 
     public function testFetchCommentWithComment(){
@@ -181,9 +181,9 @@ class CommentServiceTest extends APITestCase{
 
         echo "->>>>>>>>>>>>>>>>>>>>>>>>>>>>>with comment\n";
         echo var_dump($result)."\n";
-        $this->assertIsArray($result->comments);
+        $this->assertIsArray($result);
     }
-    
+
     protected function tearDown()
     {
         $this->clearDBTable("users");

@@ -3,7 +3,7 @@ namespace com\linways\core\request;
 
 use com\linways\base\request\BaseRequest;
 
-class SearchCommentRequest{
+class SearchCommentRequest extends BaseRequest{
     /**
      * @var String
      */

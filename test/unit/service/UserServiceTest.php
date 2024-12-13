@@ -50,6 +50,21 @@ class UserServiceTest extends APITestCase
         $this->assertDatabaseHas("users", ["id" => $result]);
     }
 
+    public function testCreateUserServiceInvalidEmail(){
+        $user = $this->getUser();
+        $user->email = "bpleasance1";
+
+        try {
+
+            $result = UserService::getInstance()->createUser($user);
+        } catch (Exception $e) {
+            echo $e->getCode();
+            $this->assertEquals($e->getMessage(), "email must be valid email");
+        }
+
+        $this->assertDatabaseHasNot("users", ["email" => $user->email]);
+    }
+
     public function testCreateUserServiceExistingUserName()
     {
         $user = $this->getUser();

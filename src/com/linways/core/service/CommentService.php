@@ -126,14 +126,14 @@ class CommentService extends BaseService
         if (!empty($request->searchContent))
             $query .= " AND comment LIKE '%$request->searchContent%'";
 
-        $response = new CommentResponse();
+        $query .= " LIMIT $request->startIndex, $request->endIndex;";
 
         try {
-            $response->comments = $this->executeQueryForList($query);
+            $comments = $this->executeQueryForList($query);
         } catch (Exception $e) {
             throw $e;
         }
 
-        return $response;
+        return $comments;
     }
 }
