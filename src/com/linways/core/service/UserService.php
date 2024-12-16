@@ -5,7 +5,6 @@ namespace com\linways\core\service;
 use com\linways\base\util\MakeSingletonTrait;
 use com\linways\core\dto\User;
 use com\linways\core\exception\GeneralException;
-use com\linways\core\mapper\PostServiceMapper;
 use com\linways\core\util\UuidUtil;
 use com\linways\core\mapper\UserServiceMapper;
 use com\linways\core\request\SearchUserRequest;
@@ -70,7 +69,6 @@ class UserService extends BaseService
 
         $user->id = UuidUtil::guidv4();
         $user->role = "user";
-        $user->profilePicture = "newLinkAfterUploadingToS3Bucket/Alternatives";
 
 
         $query = "INSERT INTO users (id, u_name, email, password, profile_picture, bio, role, created_by,
@@ -78,9 +76,7 @@ class UserService extends BaseService
             '$user->bio', '$user->role', '$user->createdBy', '$user->updatedBy');";
 
         try {
-            // $result_1 = $this->executeQueryForObject($query, TRUE, $this->mapper[UserServiceMapper::SEARCH_USER]);
-            // echo "->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>".var_dump($result_1);
-            $result = $this->executeQuery($query);
+            $result = $this->executeQuery($query, True);
         } catch (Exception $e) {
             throw $e;
         }
@@ -120,24 +116,22 @@ class UserService extends BaseService
 
     /**
      * Delete an existing user
-     * @param string $userName
-     * @param string $password
+     * @param User $user
      */
-    public function deleteUser(string $userName, string $password)
+    public function deleteUser(User $user)
     {
-        $userName = $this->realEscapeString($userName);
-        $password = $this->realEscapeString($password);
+        $user = $this->realEscapeObject($user);
 
-        if (empty($userName) || empty($password))
+        if (empty($user->uName) || empty($user->password))
             throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing parameters");
 
-        $passwordSelectQuery = "SELECT password FROM users WHERE u_name = '$userName';";
-        $deleteQuery = "DELETE FROM users WHERE u_name = '$userName';";
+        $passwordSelectQuery = "SELECT password FROM users WHERE id = '$user->id';";
+        $deleteQuery = "DELETE FROM users WHERE id = '$user->id';";
 
         try {
             $passwordResult = $this->executeQueryForObject($passwordSelectQuery);
 
-            if (!password_verify($password, $passwordResult->password))
+            if (!password_verify($user->password, $passwordResult->password))
                 throw new GeneralException(GeneralException::PASSWORD_MISSMATCH, "entered password does not match");
 
             $this->executeQuery($deleteQuery);
@@ -152,7 +146,7 @@ class UserService extends BaseService
      */
     public function editUserInfo(User $user)
     {
-        $user = $this->realEscapeObject($user);
+        $user = $this->realEscapeObject($user);                                             
 
         if ((empty($user->uName) && empty($user->email)) || empty($user->password))
             throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing parameters");
@@ -169,7 +163,7 @@ class UserService extends BaseService
             $columnArray[] = " email = '$user->email'";
         }
 
-        $updateQuery = "UPDATE users SET" . implode(",", $columnArray) . " WHERE id LIKE '$user->id';";
+        $updateQuery = "UPDATE users SET" . implode(",", $columnArray) . " WHERE id = '$user->id';";
 
         try {
             $passwordResult = $this->executeQueryForObject($passwordSelectQuery);
@@ -196,11 +190,10 @@ class UserService extends BaseService
         $request = $this->realEscapeObject($request);
 
         if (!empty($request->id)) {
-            $selectUserQuery = "SELECT id, u_name, email, profile_picture, bio FROM users
-            WHERE id LIKE '$request->id';";
+            
+            $selectUserQuery = "SELECT u.id, u.u_name, u.email, u.profile_picture, u.bio, p.id as p_id, p.post, p.caption
+            FROM users u LEFT JOIN posts p ON u.id = p.user_id WHERE u.id = '$request->id'";
 
-            $selectUserPostsQuery = "SELECT id, post, caption FROM posts 
-            WHERE user_id = '$request->id';";
         } else {
             $whereQuery = (!empty($request->searchName)) ? "WHERE u_name LIKE '%$request->searchName%' " : "";
             $limitQuery = "LIMIT $request->startIndex, $request->endIndex;";
@@ -209,12 +202,11 @@ class UserService extends BaseService
         }
 
         $response = new UserResponse();
-
         try {
-            $response->userArray = $this->executeQueryForList($selectUserQuery);
-
-            if (!empty($request->id)) {
-                $response->postsArray = $this->executeQueryForList($selectUserPostsQuery);
+            if(!empty($request->id)){
+                $response->userProfile = $this->executeQueryForList($selectUserQuery, $this->mapper[UserServiceMapper::SEARCH_USER]);
+            } else {
+                $response->usersArray = $this->executeQueryForList($selectUserQuery);
             }
         } catch (Exception $e) {
             throw $e;

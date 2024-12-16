@@ -134,7 +134,7 @@ class PostServiceTest extends APITestCase
         } catch (Exception $e) {
         }
 
-        $this->assertIsArray($result->posts);
+        $this->assertIsArray($result);
 
         $this->clearDBTable("likes");
     }
@@ -151,13 +151,15 @@ class PostServiceTest extends APITestCase
         } catch (Exception $e) {
         }
 
-        $this->assertIsArray($result->posts);
+        echo "->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n".var_dump($result)."\n";
+        $this->assertIsArray($result);
+
 
         $this->clearDBTable("likes");
     }
 
 
-    public function testFetchPostUsingFromDate()
+    public function testFetchPostUsingDateRange()
     {
 
         $this->setInitialDataUsingSQLFile(__DIR__ . "/initial-likes-setup.sql");
@@ -170,7 +172,7 @@ class PostServiceTest extends APITestCase
         } catch (Exception $e) {
         }
 
-        $this->assertIsArray($result->posts);
+        $this->assertIsArray($result);
 
         $this->clearDBTable("likes");
     }
@@ -184,7 +186,7 @@ class PostServiceTest extends APITestCase
         $request->toDate = "2024-01-19 23:28:46";
 
         try {
-            $result = PostService::getInstance()->fetchPosts($request);
+            PostService::getInstance()->fetchPosts($request);
         } catch (Exception $e) {
             echo $e->getMessage();
             $this->assertEquals($e->getCode(), GeneralException::INVALID_DATE_RANGE);

@@ -8,10 +8,10 @@ class UserResponse extends BaseResponse{
     /**
      * @var Array
      */
-    public $userArray;
+    public $usersArray;
 
     /**
      * @var Array
      */
-    public $postsArray;
+    public $userProfile;
 }

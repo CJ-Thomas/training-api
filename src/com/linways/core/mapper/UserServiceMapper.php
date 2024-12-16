@@ -14,19 +14,33 @@ class UserServiceMapper implements IMapper
 
     const SEARCH_USER = 'SEARCH_USER';
 
+    private function getPost(){
+        
+        $mapper = null;
+    
+        $mapper = new ResultMap("getPost", "com\linways\core\dto\Post", "id", "id");
+        $mapper->results[] = new Result("id", "p_id");
+        $mapper->results[] = new Result("userId", "user_id");
+        $mapper->results[] = new Result("content", "post");
+        $mapper->results[] = new Result("caption", "caption");
+    
+        return $mapper;
+    }
+
 
     private function getUser()
     {
         $mapper = null;
 
-        $mapper = new ResultMap("getUser", "com\linways\dto\User", "id", "id");
+        $mapper = new ResultMap("getUser", "com\linways\core\dto\User", "id", "id");
         $mapper->results[] = new Result("id", "id");
         $mapper->results[] = new Result("uName", "u_name");
         $mapper->results[] = new Result("email", "email");
-        $mapper->results[] = new Result("password","password");
-        $mapper->results[] = new Result("bio","bio");
-        $mapper->results[] = new Result("profilePicture","profile_picture");
-        $mapper->results[] = new Result("role","role");
+        $mapper->results[] = new Result("password", "password");
+        $mapper->results[] = new Result("bio", "bio");
+        $mapper->results[] = new Result("profilePicture", "profile_picture");
+        $mapper->results[] = new Result("role", "role");
+        $mapper->results[] = new Result("posts", "posts", Result::OBJECT_ARRAY, $this->getPost());
 
         return $mapper;
     }

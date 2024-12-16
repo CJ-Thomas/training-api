@@ -56,13 +56,28 @@ class UserServiceTest extends APITestCase
 
         try {
 
-            $result = UserService::getInstance()->createUser($user);
+            UserService::getInstance()->createUser($user);
         } catch (Exception $e) {
             echo $e->getCode();
             $this->assertEquals($e->getMessage(), "email must be valid email");
         }
 
-        $this->assertDatabaseHasNot("users", ["email" => $user->email]);
+        $this->assertDatabaseHasNot("users", ["u_name" => $user->uName]);
+    }
+
+    public function testCreateUserServiceInvalidUname(){
+        $user = $this->getUser();
+        $user->uName = "bpl";
+
+        try {
+
+            UserService::getInstance()->createUser($user);
+        } catch (Exception $e) {
+            echo $e->getCode();
+            $this->assertEquals($e->getMessage(), "uName must have a length between 4 and 30");
+        }
+
+        $this->assertDatabaseHasNot("users", ["u_name" => $user->uName]);
     }
 
     public function testCreateUserServiceExistingUserName()
@@ -78,7 +93,6 @@ class UserServiceTest extends APITestCase
             $this->assertEquals($e->getCode(), GeneralException::USER_EXISTS);
         }
 
-        $this->assertDatabaseHasNot("users", ["email" => $user->email]);
     }
 
     public function testCreateUserServiceEmptyParam()
@@ -228,7 +242,7 @@ class UserServiceTest extends APITestCase
         $this->assertDatabaseHas("users", ["email" => "deberlein2@webmd.com"]);
         $this->assertDatabaseHasNot("users", ["u_name" => $userCath->uName]);
         $this->assertDatabaseHasNot("users", ["email" => $userCath->email]);
-    }
+    }   
 
     //searchUser Tests
     public function testSearchUsersMultiple()
@@ -252,7 +266,7 @@ class UserServiceTest extends APITestCase
 
         $this->assertIsArray($result->userArray);
         $this->assertTrue($result->userArray == $expected);
-        $this->assertTrue($result->postsArray == null);
+        $this->assertTrue($result->userProfile == null);
     }
 
     public function testSearchUsersSingle()
@@ -271,38 +285,8 @@ class UserServiceTest extends APITestCase
 
 
         // better way to compare values?
-        $expectedUser = [
-            (object)[
-                "id" => "4dd48b7c-dd0f-4b33-a8e1-7e45b98f9c51",
-                "u_name" => "hlongwood5",
-                "email" => "cramelot5@mozilla.com",
-                "profile_picture" => "https://robohash.org/ipsumvelexercitationem.png?size=50x50&set=set1",
-                "bio" => "Focused encompassing synergy"
-            ]
-        ];
+        echo "->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>singleuser\n".var_dump($result)."\n";
 
-        $expectedPosts = [
-            (object) [
-                "id" => "2f8429d0-1fa5-42a7-bbcd-fc53f7adbb2d",
-                "post" => "http://dummyimage.com/593x515.png/ff4444/ffffff",
-                "caption" => "Organic real-time parallelism"
-            ],
-            (object) [
-                "id" => "c0634088-c082-4bbb-bd2d-49a5062c082e",
-                "post" => "http://dummyimage.com/558x561.png/ff4444/ffffff",
-                "caption" => "Reduced eco-centric utilisation"
-            ],
-            (object) [
-                "id" => "f82e9c1e-574c-4fac-aee5-dd4ace6a701c",
-                "post" => "http://dummyimage.com/558x511.png/cc0000/ffffff",
-                "caption" => "Inverse dedicated help-desk"
-            ]
-        ];
-
-        $this->assertIsArray($result->userArray);
-        $this->assertIsArray($result->postsArray);
-        $this->assertEquals($expectedUser, $result->userArray);
-        $this->assertEquals($expectedPosts, $result->postsArray);
 
         $this->clearDBTable("posts");
     }

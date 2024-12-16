@@ -8,4 +8,9 @@ class PostResponse extends BaseResponse{
      * @var Array
      */
     public $posts;
+
+    /**
+     * @var Array
+     */
+    public $totalLikes;
 }

@@ -58,7 +58,7 @@ class PostService extends BaseService
     {
         $post = $this->realEscapeObject($post);
 
-        if (empty($post->post) && empty($post->caption))
+        if (empty($post->content) && empty($post->caption))
             throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing parameters");
 
         if (!empty($post->content))
@@ -67,7 +67,7 @@ class PostService extends BaseService
         if (!empty($post->caption))
             $columnArray[] = "caption = '$post->caption'";
 
-        $query = "UPDATE posts SET " . implode(",", $columnArray) . " WHERE id LIKE '$post->id';";
+        $query = "UPDATE posts SET " . implode(",", $columnArray) . " WHERE id = '$post->id';";
 
         try {
             $this->executeQuery($query);
@@ -103,27 +103,30 @@ class PostService extends BaseService
     public function fetchPosts(SearchPostRequest $request)
     {
 
-        $query = "SELECT  p.id, p.post, p.caption, COUNT(l.post_id) AS total_likes
+        $query = "SELECT  p.id, p.user_id, p.post, p.caption, p.time_stamp, COUNT(l.post_id) AS total_likes
         FROM posts p LEFT JOIN likes l ON p.id = l.post_id WHERE 1=1";
 
-        if (!empty($request->id))
+        if (!empty($request->id)) {
             $query .= " AND p.id = '$request->id'";
+        }
 
-        if (!empty($request->fromDate) && !empty($request->toDate))
-            $query .= " AND time_stamp BETWEEN '$request->fromDate' AND '$request->toDate'";
+        if (!empty($request->fromDate) && !empty($request->toDate)) {
 
-        if(date($request->fromDate) > date($request->toDate))
+            $query .= " AND p.time_stamp BETWEEN '$request->fromDate' AND '$request->toDate'";
+        }
+
+        if (date($request->fromDate) > date($request->toDate)){
             throw new GeneralException(GeneralException::INVALID_DATE_RANGE);
+        }
 
         $query .= " GROUP BY p.id LIMIT $request->startIndex, $request->endIndex;";
 
-        $response = new PostResponse();
         try {
-            $response->posts = $this->executeQueryForList($query);
+            $posts = $this->executeQueryForList($query);
         } catch (Exception $e) {
             throw $e;
         }
-        return $response;
+        return $posts;
     }
 
     /**
@@ -136,7 +139,7 @@ class PostService extends BaseService
         $like->createdBy = $GLOBALS["userId"] ?? $like->createdBy;
         $like->updatedBy = $GLOBALS["userId"] ?? $like->updatedBy;
 
-        if( empty($like->userId) || empty($like->postId ))
+        if (empty($like->userId) || empty($like->postId))
             throw new GeneralException(GeneralException::EMPTY_PARAMETERS);
 
         $like->id = UuidUtil::guidv4();
@@ -162,7 +165,7 @@ class PostService extends BaseService
         if (empty($id))
             throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing id parameter");
 
-        $query = "DELETE FROM likes WHERE id LIKE '$id';";
+        $query = "DELETE FROM likes WHERE id = '$id';";
 
         try {
             $this->executeQuery($query);

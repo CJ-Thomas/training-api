@@ -1,4 +1,5 @@
 <?php
+
 namespace com\linways\core\dto;
 
 use com\linways\base\dto\BaseDTO;
@@ -40,5 +41,10 @@ class User extends BaseDTO{
      * @var string
      */
     public $role; 
+
+    /**
+     * @var object[]
+     */
+    public $posts;
 }
 ?>

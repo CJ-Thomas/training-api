@@ -40,14 +40,11 @@ class CommentService extends BaseService
             throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing comment");
 
 
-        $query = "INSERT INTO comments (id, user_id, post_id, comment, created_by, updated_by)
-            VALUES('$comment->id','$comment->userId','$comment->postId','$comment->content',
-            '$comment->createdBy','$comment->updatedBy');";
+        $comment->parentCommentId = empty($comment->parentCommentId) ? "null" : "'$comment->parentCommentId'";
 
-        if (!empty($comment->parentCommentId))
-            $query = "INSERT INTO comments (id, user_id, post_id, comment, parent_comment_id, created_by, updated_by)
-            VALUES('$comment->id','$comment->userId','$comment->postId','$comment->content','$comment->parentCommentId',
-            '$comment->createdBy','$comment->updatedBy');";
+        $query = "INSERT INTO comments (id, user_id, post_id, comment, parent_comment_id, created_by, updated_by)
+        VALUES('$comment->id','$comment->userId','$comment->postId','$comment->content',$comment->parentCommentId,
+        '$comment->createdBy','$comment->updatedBy');";
 
         try {
             $this->executeQuery($query);
@@ -91,7 +88,7 @@ class CommentService extends BaseService
             throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing id parameter");
 
 
-        $query = "DELETE FROM comments WHERE id LIKE '$id';";
+        $query = "DELETE FROM comments WHERE id = '$id';";
 
         try {
             $this->executeQuery($query);
@@ -112,16 +109,16 @@ class CommentService extends BaseService
         $query = "SELECT id, user_id, post_id, comment, parent_comment_id FROM comments WHERE 1=1";
 
         if (!empty($request->id))
-            $query .= " AND id LIKE '$request->id'";
+            $query .= " AND id = '$request->id'";
 
         if (!empty($request->postId))
-            $query .= " AND post_id LIKE '$request->postId'";
+            $query .= " AND post_id = '$request->postId'";
 
         if (!empty($request->userId))
-            $query .= " AND user_id LIKE '$request->userId'";
+            $query .= " AND user_id = '$request->userId'";
 
         if (!empty($request->parentCommentId))
-            $query .= " AND parent_comment_id LIKE '$request->parentCommentId'";
+            $query .= " AND parent_comment_id = '$request->parentCommentId'";
 
         if (!empty($request->searchContent))
             $query .= " AND comment LIKE '%$request->searchContent%'";
@@ -129,7 +126,7 @@ class CommentService extends BaseService
         $query .= " LIMIT $request->startIndex, $request->endIndex;";
 
         try {
-            $comments = $this->executeQueryForList($query);
+            $comments = $this->executeQueryForList($query, false, $this->mapper[CommentServiceMapper::SEARCH_COMMENT]);
         } catch (Exception $e) {
             throw $e;
         }
