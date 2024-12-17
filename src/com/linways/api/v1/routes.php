@@ -1,10 +1,8 @@
 <?php
 
-$app->group('/helloWorld', function () use ($app) {
-    require SOURCE_DIR . '/v1/helloWorld/routes.php';
-});
-
-
+// $app->group('/helloWorld', function () use ($app) {
+//     require SOURCE_DIR . '/v1/helloWorld/routes.php';
+// });
 
 $app->group('/user', function () use ($app) {
     require_once SOURCE_DIR . '/v1/user/routes.php';

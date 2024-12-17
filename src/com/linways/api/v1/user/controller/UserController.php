@@ -5,13 +5,11 @@ namespace com\linways\api\v1\user\controller;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use com\linways\api\v1\controller\BaseController;
-use Slim\Http\StatusCode;
 use Linways\Slim\Utils\ResponseUtils;
 use com\linways\core\dto\User;
 use com\linways\core\request\SearchUserRequest;
 use com\linways\core\service\UserService;
 use Exception;
-use stdClass;
 
 class UserController extends BaseController
 {
@@ -37,6 +35,7 @@ class UserController extends BaseController
 
             $user->id = UserService::getInstance()->createUser($user);
 
+            $user->password = "";
             return $response->withJson($user);
         } catch (Exception $e) {
 

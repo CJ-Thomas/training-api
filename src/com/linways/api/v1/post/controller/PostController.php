@@ -2,9 +2,11 @@
 
 namespace com\linways\api\v1\post\controller;
 
+
 use Slim\Http\Request;
 use Slim\Http\Response;
 use com\linways\api\v1\controller\BaseController;
+use com\linways\core\dto\Like;
 use com\linways\core\dto\Post;
 use com\linways\core\request\SearchPostRequest;
 use com\linways\core\service\PostService;
@@ -19,10 +21,9 @@ class PostController extends BaseController
 
         $post = new Post();
 
-
         $param = $request->getParsedBody();
 
-        $activeSessionUser = $param["id"];
+        $activeSessionUser = $param["userId"];
 
         //check for active session 
         //get userId from active session
@@ -46,6 +47,7 @@ class PostController extends BaseController
 
     protected function edit(Request $request, Response $response)
     {
+        
         $post = new Post();
 
         $param = $request->getParsedBody();
@@ -92,5 +94,38 @@ class PostController extends BaseController
         return $response->withJson($result);
     }
 
-    protected function interact(Request $request, Response $response) {}
+    protected function interact(Request $request, Response $response)
+    {
+
+        if ($request->isPost()) {
+            $params = $request->getParsedBody();
+            $like = new Like();
+            $like->userId = $params["userId"];
+            $like->postId = $params["postId"];
+
+
+            try {
+
+                $result = PostService::getInstance()->likePost($like);
+
+                return $response->withJson($result);
+
+            } catch (Exception $e) {
+
+                return ResponseUtils::fault($response, $e);
+            }
+        } elseif ($request->isDelete()) {
+
+            $id = $request->getAttribute("id");
+
+            try {
+
+                PostService::getInstance()->removeLike($id);
+
+            } catch (Exception $e) {
+
+                return ResponseUtils::fault($response, $e);
+            }
+        }
+    }
 }

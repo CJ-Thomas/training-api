@@ -38,8 +38,10 @@ class PostService extends BaseService
         if (empty($post->content))
             throw new GeneralException(GeneralException::EMPTY_PARAMETERS);
 
+            $post->caption = empty($post->caption)? "null" : "'$post->caption'";
+
         $query = "INSERT INTO posts(id, user_id, post, caption, created_by, updated_by)
-        VALUES('$post->id', '$post->userId', '$post->content', '$post->caption', '$post->createdBy', '$post->updatedBy');";
+        VALUES('$post->id', '$post->userId', '$post->content', $post->caption, '$post->createdBy', '$post->updatedBy');";
 
         try {
             $this->executeQuery($query);
@@ -152,7 +154,7 @@ class PostService extends BaseService
         } catch (Exception $e) {
             throw $e;
         }
-        return $like;
+        return ["id" => $like->id, "postId" => $like->postId];
     }
 
     /**
