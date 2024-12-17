@@ -11,3 +11,7 @@ $app->group('/user', function () use ($app) {
 $app->group('/post', function () use ($app) {
     require_once SOURCE_DIR . '/v1/post/routes.php';
 });
+
+$app->group('/comment', function () use ($app) {
+    require_once SOURCE_DIR . '/v1/comment/routes.php';
+});

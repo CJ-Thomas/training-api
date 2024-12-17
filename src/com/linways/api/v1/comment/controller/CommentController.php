@@ -15,11 +15,12 @@ use Exception;
 class CommentController extends BaseController{
     
     protected function create(Request $request, Response $response){
+        
+        $comment = new Comment();
+        
         $params = $request->getParsedBody();
 
-        $comment = new Comment();
-
-        $comment->userId = $params["useId"];
+        $comment->userId = $params["userId"];
         $comment->postId = $params["postId"];
         $comment->content = $params["content"];
         $comment->parentCommentId = $params["parentCommentId"];
@@ -74,10 +75,10 @@ class CommentController extends BaseController{
         $searchComment->postId = $params["postId"];
         $searchComment->userId = $params["userId"];
         $searchComment->parentCommentId = $params["parentCommentId"];
-        $searchComment->searchComment = $params["searchComemnt"];
+        $searchComment->searchContent = $params["searchContent"];
 
         try {
-            $result = CommentService::getInstance()->fetchComment($searchComment);
+            $result = CommentService::getInstance()->fetchComments($searchComment);
 
             return $response->withJson($result);
         } catch (Exception $e) {
