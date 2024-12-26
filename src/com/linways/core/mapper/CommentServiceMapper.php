@@ -15,15 +15,27 @@ class CommentServiceMapper implements IMapper{
 
     private $mapper;
 
-    private function getComment(){
+    private function getReplies(){
+        
+        $mapper = null;
+
+        $mapper = new ResultMap("getReplies", "com\linways\core\dto\Comment", "id", "r_id");
+        $mapper->results[] = new Result("id", "r_id");
+        $mapper->results[] = new Result("userId", "r_user_id");
+        $mapper->results[] = new Result("content", "r_comment");
+
+        return $mapper;
+    }
+
+    private function getCommentWithReplies(){
         $mapper = null;
     
-        $mapper = new ResultMap("getComment", "com\linways\core\dto\Comment", "id", "id");
+        $mapper = new ResultMap("getCommentWithReplies", "com\linways\core\dto\Comment", "id", "id");
         $mapper->results[] = new Result("id", "id");
         $mapper->results[] = new Result("userId", "user_id");
         $mapper->results[] = new Result("postId", "post_id");
         $mapper->results[] = new Result("content", "comment");
-        $mapper->results[] = new Result("parentCommentId", "parent_comment_id");
+        $mapper->results[] = new Result("replies", "replies", Result::OBJECT_ARRAY, $this->getReplies());
     
         return $mapper;
     }
@@ -31,7 +43,7 @@ class CommentServiceMapper implements IMapper{
     public function getMapper()
     {
         if (empty($this->mapper)) {
-            $this->mapper[self::SEARCH_COMMENT] = $this->getComment();
+            $this->mapper[self::SEARCH_COMMENT] = $this->getCommentWithReplies();
         }
         return $this->mapper;
     }

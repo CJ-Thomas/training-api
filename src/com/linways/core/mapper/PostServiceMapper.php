@@ -14,15 +14,26 @@ class PostServiceMapper implements IMapper{
     const SEARCH_POST = 'SEARCH_POST';
 
     private $mapper;
+
+    private function getLikedUsers(){
+        $mapper = null;
+
+        $mapper = new ResultMap("getLikedUsers", "com\linways\core\dto\Like", "id", "l_id");
+        $mapper->results[] = new Result("id", "l_id");
+        $mapper->results[] = new Result("userId", "l_users");
+        
+        return $mapper;
+    }
     
     private function getPost(){
         $mapper = null;
     
-        $mapper = new ResultMap("getPost", "com\linways\core\dto\Post", "id", "id");
-        $mapper->results[] = new Result("id", "id");
+        $mapper = new ResultMap("getPost", "com\linways\core\dto\Post", "id", "p_id");
+        $mapper->results[] = new Result("id", "p_id");
         $mapper->results[] = new Result("userId", "user_id");
         $mapper->results[] = new Result("content", "post");
         $mapper->results[] = new Result("caption", "caption");
+        $mapper->results[] = new Result("likedUsers", "likedUsers", Result::OBJECT_ARRAY, $this->getLikedUsers());
     
         return $mapper;
     }

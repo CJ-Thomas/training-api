@@ -105,7 +105,7 @@ class PostService extends BaseService
     public function fetchPosts(SearchPostRequest $request)
     {
 
-        $query = "SELECT  p.id, p.user_id, p.post, p.caption, p.time_stamp, COUNT(l.post_id) AS total_likes
+        $query = "SELECT  p.id AS p_id, p.user_id, p.post, p.caption, p.time_stamp, l.id AS l_id, l.user_id AS l_users
         FROM posts p LEFT JOIN likes l ON p.id = l.post_id WHERE 1=1";
 
         if (!empty($request->id)) {
@@ -121,13 +121,14 @@ class PostService extends BaseService
             throw new GeneralException(GeneralException::INVALID_DATE_RANGE);
         }
 
-        $query .= " GROUP BY p.id LIMIT $request->startIndex, $request->endIndex;";
+        $query .= " LIMIT $request->startIndex, $request->endIndex;";
 
         try {
-            $posts = $this->executeQueryForList($query);
+            $posts = $this->executeQueryForList($query, $this->mapper[PostServiceMapper::SEARCH_POST]);
         } catch (Exception $e) {
             throw $e;
         }
+
         return $posts;
     }
 
@@ -154,7 +155,7 @@ class PostService extends BaseService
         } catch (Exception $e) {
             throw $e;
         }
-        return ["id" => $like->id, "postId" => $like->postId];
+        return $like;
     }
 
     /**

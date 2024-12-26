@@ -10,12 +10,20 @@ use com\linways\core\dto\User;
 use com\linways\core\request\SearchUserRequest;
 use com\linways\core\service\UserService;
 use Exception;
+use Slim\Http\StatusCode;
 
 class UserController extends BaseController
 {
     // public $permissons_register = []; // why this variable
 
-    protected function register(Request $request, Response $response)
+
+    private function uploadTos3($uName){
+
+        $url = "https://robohash.org/$uName.png?size=200x200&set=set1";
+        return $url;
+    }
+
+    protected function registerUser(Request $request, Response $response)
     {
 
 
@@ -27,7 +35,7 @@ class UserController extends BaseController
         $user->email = $params["email"];
         $user->password = $params["password"];
         //code to upload to s3 bucket or someother online storage
-        $user->profilePicture = "s3BucketLink";
+        $user->profilePicture = $this->uploadTos3($params["uName"]);
         $user->bio = $params["bio"];
         $user->role = "user";
 
@@ -44,7 +52,7 @@ class UserController extends BaseController
         }
     }
 
-    protected function login(Request $request, Response $response)
+    protected function loginUser(Request $request, Response $response)
     {
 
         $userName = $request->getParsedBodyParam("uName");
@@ -56,15 +64,16 @@ class UserController extends BaseController
 
             //create a new session using jwt
             //redirection
-            return $response;
+            return $response->withJson(["id" => $id]);
         } catch (Exception $e) {
 
             //response utils
-            return ResponseUtils::fault($response, $e);
+            return ResponseUtils::fault($response->withStatus(StatusCode::HTTP_UNAUTHORIZED, 'wrong user/ password')
+            , $e);
         }
     }
 
-    protected function logout(Request $request, Response $response)
+    protected function logoutUser(Request $request, Response $response)
     {
         if ($request->isPost()) {
             //check for session 
@@ -72,7 +81,7 @@ class UserController extends BaseController
         }
     }
 
-    protected function edit(Request $request, Response $response)
+    protected function editUser(Request $request, Response $response)
     {
 
         //check for session
@@ -95,7 +104,7 @@ class UserController extends BaseController
         }
     }
 
-    protected function delete(Request $request, Response $response)
+    protected function deleteUser(Request $request, Response $response)
     {
         if ($request->isDelete()) {
 
@@ -119,7 +128,7 @@ class UserController extends BaseController
         }
     }
 
-    protected function fetch(Request $request, Response $response)
+    protected function fetchUser(Request $request, Response $response)
     {
 
         //check for session

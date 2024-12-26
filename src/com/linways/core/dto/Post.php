@@ -30,6 +30,11 @@ class Post extends BaseDTO{
      */
     public $timeStamp;
 
+    /**
+     * @var Array
+     */
+    public $likedUsers;
+
 }
 
 ?>

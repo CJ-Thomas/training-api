@@ -1,5 +1,5 @@
 <?php
-$app->post('[/]', 'CommentController:create');
-$app->put('/{id}[/]', 'CommentController:edit');
-$app->delete('/{id}[/]', 'CommentController:delete');
-$app->get('[/]', 'CommentController:fetch');
+$app->post('[/]', 'CommentController:createComment');
+$app->put('/{id}[/]', 'CommentController:editComment');
+$app->delete('/{id}[/]', 'CommentController:deleteComment');
+$app->get('[/]', 'CommentController:fetchComment');

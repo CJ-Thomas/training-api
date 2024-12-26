@@ -146,7 +146,7 @@ class UserService extends BaseService
      */
     public function editUserInfo(User $user)
     {
-        $user = $this->realEscapeObject($user);                                             
+        $user = $this->realEscapeObject($user);
 
         if ((empty($user->uName) && empty($user->email)) || empty($user->password))
             throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing parameters");
@@ -190,9 +190,10 @@ class UserService extends BaseService
         $request = $this->realEscapeObject($request);
 
         if (!empty($request->id)) {
-            
-            $selectUserQuery = "SELECT u.id, u.u_name, u.email, u.profile_picture, u.bio, p.id as p_id, p.post, p.caption
-            FROM users u LEFT JOIN posts p ON u.id = p.user_id WHERE u.id = '$request->id'";
+
+            $selectUserQuery = "SELECT u.id, u.u_name, u.email, u.profile_picture, u.bio, p.id as p_id, p.post, p.caption, l.id AS l_id, l.user_id AS l_users
+            FROM users u LEFT JOIN posts p ON u.id = p.user_id LEFT JOIN likes l ON p.id = l.post_id 
+            WHERE u.id = '$request->id'";
 
         } else {
             $whereQuery = (!empty($request->searchName)) ? "WHERE u_name LIKE '%$request->searchName%' " : "";
@@ -203,7 +204,7 @@ class UserService extends BaseService
 
         $response = new UserResponse();
         try {
-            if(!empty($request->id)){
+            if (!empty($request->id)) {
                 $response->userProfile = $this->executeQueryForList($selectUserQuery, $this->mapper[UserServiceMapper::SEARCH_USER]);
             } else {
                 $response->usersArray = $this->executeQueryForList($selectUserQuery);

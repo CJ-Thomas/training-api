@@ -1,9 +1,9 @@
 <?php
-$app->post('[/]', 'UserController:register');
-$app->put('/{id}[/]', 'UserController:edit');
-$app->delete('/{id}[/]', 'UserController:delete');
-$app->get('[/]', 'UserController:fetch');
-$app->get('/{id}[/]', 'UserController:fetch');
+$app->post('[/]', 'UserController:registerUser');
+$app->put('/{id}[/]', 'UserController:editUser');
+$app->delete('/{id}[/]', 'UserController:deleteUser');
+$app->get('[/]', 'UserController:fetchUser');
+$app->get('/{id}[/]', 'UserController:fetchUser');
 
-$app->post('/login[/]', 'UserController:login');
-$app->post('/logout[/]', 'UserController:logout');
+$app->post('/login[/]', 'UserController:loginUser');
+$app->post('/logout[/]', 'UserController:logoutUser');

@@ -14,7 +14,7 @@ use Exception;
 
 class CommentController extends BaseController{
     
-    protected function create(Request $request, Response $response){
+    protected function createComment(Request $request, Response $response){
         
         $comment = new Comment();
         
@@ -38,7 +38,7 @@ class CommentController extends BaseController{
 
     }
     
-    protected function edit(Request $request, Response $response){
+    protected function editComment(Request $request, Response $response){
 
         $comment = new Comment();
         
@@ -53,7 +53,7 @@ class CommentController extends BaseController{
 
     }
 
-    protected function delete(Request $request, Response $response){
+    protected function deleteComment(Request $request, Response $response){
 
         $id = $request->getAttribute("id");
 
@@ -65,7 +65,7 @@ class CommentController extends BaseController{
         }
     }
 
-    protected function fetch(Request $request, Response $response){
+    protected function fetchComment(Request $request, Response $response){
 
         $searchComment = new SearchCommentRequest();
 

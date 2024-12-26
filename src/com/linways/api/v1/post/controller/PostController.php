@@ -16,7 +16,15 @@ use Linways\Slim\Utils\ResponseUtils;
 class PostController extends BaseController
 {
 
-    protected function create(Request $request, Response $response)
+    private function uploadToS3(){
+        $color1 = dechex(rand(0x000000, 0xFFFFFF));
+        $color2 = dechex(rand(0x000000, 0xFFFFFF));
+        $str = "https://dummyimage.com/350x350/$color1/$color2";
+
+        return $str;
+    }
+    
+    protected function createPost(Request $request, Response $response)
     {
 
         $post = new Post();
@@ -31,8 +39,9 @@ class PostController extends BaseController
         $post->userId = $activeSessionUser;
 
         //upload content to some online storage($param["content"])
+        $content = $this->uploadToS3();
 
-        $post->content = $param["content"];
+        $post->content = $content;
         $post->caption = $param["caption"];
         $post->timeStamp = date('Y-m-d H:i:s');
 
@@ -45,7 +54,7 @@ class PostController extends BaseController
         }
     }
 
-    protected function edit(Request $request, Response $response)
+    protected function editPost(Request $request, Response $response)
     {
         
         $post = new Post();
@@ -63,7 +72,7 @@ class PostController extends BaseController
         }
     }
 
-    protected function delete(Request $request, Response $response)
+    protected function deletePost(Request $request, Response $response)
     {
 
         $id = $request->getAttribute("id");
@@ -75,7 +84,7 @@ class PostController extends BaseController
         }
     }
 
-    protected function fetch(Request $request, Response $response)
+    protected function fetchPost(Request $request, Response $response)
     {
         $searchPostRequest = new SearchPostRequest();
 
@@ -94,7 +103,7 @@ class PostController extends BaseController
         return $response->withJson($result);
     }
 
-    protected function interact(Request $request, Response $response)
+    protected function interactWithPost(Request $request, Response $response)
     {
 
         if ($request->isPost()) {

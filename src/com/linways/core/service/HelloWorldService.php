@@ -15,6 +15,8 @@ class HelloWorldService extends BaseService
 {
     use MakeSingletonTrait;
 
+    private $mapper;
+    
     private function __construct() {
         $this->mapper = HelloWorldServiceMapper::getInstance()->getMapper();
     }

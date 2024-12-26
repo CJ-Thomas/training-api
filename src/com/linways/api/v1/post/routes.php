@@ -1,11 +1,11 @@
 <?php
-$app->post('[/]', 'PostController:create');
-$app->put('/{id}[/]', 'PostController:edit');
-$app->delete('/{id}[/]', 'PostController:delete');
-$app->get('[/]', 'PostController:fetch');
-$app->get('/{id}[/]', 'PostController:fetch');
+$app->post('[/]', 'PostController:createPost');
+$app->put('/{id}[/]', 'PostController:editPost');
+$app->delete('/{id}[/]', 'PostController:deletePost');
+$app->get('[/]', 'PostController:fetchPost');
+$app->get('/{id}[/]', 'PostController:fetchPost');
 
-$app->post('/interact[/]', 'PostController:interact');
-$app->delete('/interact/{id}[/]', 'PostController:interact');
+$app->post('/interact[/]', 'PostController:interactWithPost');
+$app->delete('/interact/{id}[/]', 'PostController:interactWithPost');
 
 

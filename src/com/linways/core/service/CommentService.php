@@ -106,27 +106,26 @@ class CommentService extends BaseService
     {
         $request = $this->realEscapeObject($request);
 
-        $query = "SELECT id, user_id, post_id, comment, parent_comment_id FROM comments WHERE 1=1";
+        $query = "SELECT c1.id, c1.user_id, c1.post_id, c1.comment, c2.id as r_id,
+        c2.user_id as r_user_id, c2.comment as r_comment FROM comments c1 
+        LEFT JOIN comments c2 ON c1.id = c2.parent_comment_id WHERE c1.parent_comment_id IS NULL";
 
         if (!empty($request->id))
-            $query .= " AND id = '$request->id'";
+            $query .= " AND c1.id = '$request->id'";
 
         if (!empty($request->postId))
-            $query .= " AND post_id = '$request->postId'";
+            $query .= " AND c1.post_id = '$request->postId'";
 
         if (!empty($request->userId))
-            $query .= " AND user_id = '$request->userId'";
-
-        if (!empty($request->parentCommentId))
-            $query .= " AND parent_comment_id = '$request->parentCommentId'";
+            $query .= " AND c1.user_id = '$request->userId'";
 
         if (!empty($request->searchContent))
-            $query .= " AND comment LIKE '%$request->searchContent%'";
+            $query .= " AND c1.comment LIKE '%$request->searchContent%'";
 
         $query .= " LIMIT $request->startIndex, $request->endIndex;";
 
         try {
-            $comments = $this->executeQueryForList($query, false, $this->mapper[CommentServiceMapper::SEARCH_COMMENT]);
+            $comments = $this->executeQueryForList($query, $this->mapper[CommentServiceMapper::SEARCH_COMMENT]);
         } catch (Exception $e) {
             throw $e;
         }

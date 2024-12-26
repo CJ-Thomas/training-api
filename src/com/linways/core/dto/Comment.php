@@ -30,5 +30,10 @@ class Comment extends BaseDTO {
      */
 	public $content;
 
+    /**
+     * @var object[]
+     */
+    public $replies;
+
 }
 ?>
