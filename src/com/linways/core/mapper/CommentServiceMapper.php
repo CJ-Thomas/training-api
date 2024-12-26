@@ -23,6 +23,8 @@ class CommentServiceMapper implements IMapper{
         $mapper->results[] = new Result("id", "r_id");
         $mapper->results[] = new Result("userId", "r_user_id");
         $mapper->results[] = new Result("content", "r_comment");
+        $mapper->results[] = new Result("userName", "r_u_name");
+        $mapper->results[] = new Result("profilePicture", "r_profile_picture");
 
         return $mapper;
     }
@@ -35,6 +37,8 @@ class CommentServiceMapper implements IMapper{
         $mapper->results[] = new Result("userId", "user_id");
         $mapper->results[] = new Result("postId", "post_id");
         $mapper->results[] = new Result("content", "comment");
+        $mapper->results[] = new Result("userName", "u_name");
+        $mapper->results[] = new Result("profilePicture", "profile_picture");
         $mapper->results[] = new Result("replies", "replies", Result::OBJECT_ARRAY, $this->getReplies());
     
         return $mapper;

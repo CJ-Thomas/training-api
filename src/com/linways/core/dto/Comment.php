@@ -31,6 +31,17 @@ class Comment extends BaseDTO {
 	public $content;
 
     /**
+     * @var string
+     */
+    public $userName;
+
+
+    /**
+     * @var string
+     */
+    public $profilePicture;
+
+    /**
      * @var object[]
      */
     public $replies;

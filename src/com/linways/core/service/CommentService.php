@@ -106,9 +106,10 @@ class CommentService extends BaseService
     {
         $request = $this->realEscapeObject($request);
 
-        $query = "SELECT c1.id, c1.user_id, c1.post_id, c1.comment, c2.id as r_id,
-        c2.user_id as r_user_id, c2.comment as r_comment FROM comments c1 
-        LEFT JOIN comments c2 ON c1.id = c2.parent_comment_id WHERE c1.parent_comment_id IS NULL";
+        $query = "SELECT c1.id, c1.user_id, c1.post_id, c1.comment, u1.u_name, u1.profile_picture,
+        c2.id as r_id, c2.user_id as r_user_id, c2.comment as r_comment, u2.u_name as r_u_name,
+        u2.profile_picture as r_profile_picture FROM comments c1 LEFT JOIN comments c2 ON c1.id = c2.parent_comment_id
+        LEFT JOIN users u1 ON c1.user_id = u1.id LEFT JOIN users u2 ON c2.user_id = u2.id WHERE c1.parent_comment_id IS NULL";
 
         if (!empty($request->id))
             $query .= " AND c1.id = '$request->id'";
