@@ -7,6 +7,7 @@ use com\linways\core\dto\User;
 use com\linways\core\exception\GeneralException;
 use com\linways\core\util\UuidUtil;
 use com\linways\core\mapper\UserServiceMapper;
+use com\linways\core\request\ChangePasswordRequest;
 use com\linways\core\request\SearchUserRequest;
 use com\linways\core\response\UserResponse;
 use Respect\Validation\Validator;
@@ -100,7 +101,7 @@ class UserService extends BaseService
         if (empty($userName) || empty($password))
             throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing parameters");
 
-        $query = "SELECT id, password FROM users WHERE u_name = '$userName';";
+        $query = "SELECT id, email, bio, password FROM users WHERE u_name = '$userName';";
 
         try {
             $result = $this->executeQueryForObject($query);
@@ -111,7 +112,9 @@ class UserService extends BaseService
         if (!password_verify($password, $result->password))
             throw new GeneralException(GeneralException::PASSWORD_MISSMATCH, "entered password does not match");
 
-        return $result->id;
+        unset($result->password);
+
+        return $result;
     }
 
     /**
@@ -122,7 +125,7 @@ class UserService extends BaseService
     {
         $user = $this->realEscapeObject($user);
 
-        if (empty($user->uName) || empty($user->password))
+        if (empty($user->password))
             throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing parameters");
 
         $passwordSelectQuery = "SELECT password FROM users WHERE id = '$user->id';";
@@ -163,6 +166,12 @@ class UserService extends BaseService
             $columnArray[] = " email = '$user->email'";
         }
 
+        if($user->bio === "") {
+            $columnArray[] = " bio = null";
+        } else {
+            $columnArray[] = " bio = '$user->bio'";
+        } 
+
         $updateQuery = "UPDATE users SET" . implode(",", $columnArray) . " WHERE id = '$user->id';";
 
         try {
@@ -178,7 +187,38 @@ class UserService extends BaseService
         }
     }
 
+    /**
+     * change users password
+     * 
+     * @param ChangePasswordRequest
+     */
+    public function changeUserPassword(ChangePasswordRequest $request){
+        if(empty($request->currentPassword)||empty($request->newPassword)||empty($request->confirmNewPassword))
+            throw new GeneralException(GeneralException::EMPTY_PARAMETERS, "missing parameters");
 
+        if($request->newPassword !== $request->confirmNewPassword)
+            throw new GeneralException(GeneralException::PASSWORD_MISSMATCH, "enterd password does not match");
+            
+        $passwordSelectQuery = "SELECT password FROM users WHERE id = '$request->id';";
+
+        $newPasswordHash = password_hash($request->newPassword, PASSWORD_DEFAULT);
+
+        $updateQuery = "UPDATE users SET password = '$newPasswordHash' WHERE id = '$request->id'";
+
+        try {
+            $passwordResult = $this->executeQueryForObject($passwordSelectQuery);
+
+            if (!password_verify($request->currentPassword, $passwordResult->password))
+                throw new GeneralException(GeneralException::PASSWORD_MISSMATCH, "enterd password does not match");
+
+
+            $this->executeQuery($updateQuery);
+        } catch (Exception $e) {
+            throw $e;
+        }
+
+
+    }
 
     /**
      * Fetching users

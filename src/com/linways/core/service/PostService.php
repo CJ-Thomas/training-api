@@ -107,7 +107,7 @@ class PostService extends BaseService
 
         $query = "SELECT  p.id AS p_id, p.user_id, p.post, p.caption, p.time_stamp, l.id AS l_id, l.user_id AS l_users
         FROM posts p LEFT JOIN likes l ON p.id = l.post_id WHERE 1=1";
-
+    
         if (!empty($request->id)) {
             $query .= " AND p.id = '$request->id'";
         }

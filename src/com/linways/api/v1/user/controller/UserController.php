@@ -7,6 +7,7 @@ use Slim\Http\Response;
 use com\linways\api\v1\controller\BaseController;
 use Linways\Slim\Utils\ResponseUtils;
 use com\linways\core\dto\User;
+use com\linways\core\request\ChangePasswordRequest;
 use com\linways\core\request\SearchUserRequest;
 use com\linways\core\service\UserService;
 use Exception;
@@ -60,11 +61,11 @@ class UserController extends BaseController
 
         try {
 
-            $id = UserService::getInstance()->authenticateUser($userName, $password);
+            $data = UserService::getInstance()->authenticateUser($userName, $password);
 
             //create a new session using jwt
             //redirection
-            return $response->withJson(["id" => $id]);
+            return $response->withJson($data);
         } catch (Exception $e) {
 
             //response utils
@@ -93,6 +94,7 @@ class UserController extends BaseController
         $user->id = $request->getAttribute('id');
         $user->uName = $params["uName"];
         $user->email = $params["email"];
+        $user->bio = $params["bio"];
         $user->password = $params["password"];
 
         try {
@@ -104,18 +106,35 @@ class UserController extends BaseController
         }
     }
 
+    protected function changePassword(Request $request, Response $response){
+
+        $params = $request->getParsedBody();
+
+        $changePasswordReq = new ChangePasswordRequest();
+
+        $changePasswordReq->id = $request->getAttribute('id');
+        $changePasswordReq->currentPassword = $params["currentPassword"];
+        $changePasswordReq->newPassword = $params["newPassword"];
+        $changePasswordReq->confirmNewPassword = $params["confirmNewPassword"];
+
+        try {
+            UserService::getInstance()->changeUserPassword($changePasswordReq);
+        } catch (Exception $e) {
+
+            //response utils
+            return ResponseUtils::fault($response, $e);
+        }
+
+    }
+
     protected function deleteUser(Request $request, Response $response)
     {
-        if ($request->isDelete()) {
-
             //check for session
-
             $user = new User();
 
             $params = $request->getParsedBody();
 
             $user->id = $request->getAttribute("id");
-            $user->uName = $params["uName"];
             $user->password = $params["password"];
 
             try {
@@ -125,7 +144,6 @@ class UserController extends BaseController
                 //response utils
                 return ResponseUtils::fault($response, $e);
             }
-        }
     }
 
     protected function fetchUser(Request $request, Response $response)
